@@ -1,7 +1,9 @@
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Navbar } from "@/components/Navbar";
+import { OrbBackground } from "@/components/OrbBackground";
 import { ItemCard } from "@/components/ItemCard";
+import { GlassCard } from "@/components/GlassCard";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Search, Filter } from "lucide-react";
@@ -81,12 +83,13 @@ export default function Items() {
   const categories = Array.from(new Set(items.map((item) => item.category)));
 
   return (
-    <div className="min-h-screen bg-gradient-hero">
+    <div className="min-h-screen relative">
+      <OrbBackground />
       <Navbar />
 
-      <main className="container mx-auto px-4 pt-24 pb-12">
+      <main className="container mx-auto px-4 pt-24 pb-12 relative z-10">
         <div className="mb-8 animate-fade-in">
-          <h1 className="text-4xl font-bold mb-4 bg-gradient-primary bg-clip-text text-transparent">
+          <h1 className="text-4xl font-bold mb-4 text-foreground text-glow">
             Found Items
           </h1>
           <p className="text-muted-foreground">
@@ -94,47 +97,49 @@ export default function Items() {
           </p>
         </div>
 
-        <div className="mb-8 flex flex-col md:flex-row gap-4 animate-fade-in">
-          <div className="flex-1 relative">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-5 h-5" />
-            <Input
-              placeholder="Search items..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="pl-10"
-            />
-          </div>
+        <GlassCard subtle className="mb-8 p-4 animate-fade-in">
+          <div className="flex flex-col md:flex-row gap-4">
+            <div className="flex-1 relative">
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-5 h-5" />
+              <Input
+                placeholder="Search items..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="pl-10 bg-secondary/50 border-border/50 focus:border-primary"
+              />
+            </div>
 
-          <div className="w-full md:w-64">
-            <Select value={categoryFilter} onValueChange={setCategoryFilter}>
-              <SelectTrigger>
-                <Filter className="w-4 h-4 mr-2" />
-                <SelectValue placeholder="All Categories" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All Categories</SelectItem>
-                {categories.map((category) => (
-                  <SelectItem key={category} value={category}>
-                    {category}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+            <div className="w-full md:w-64">
+              <Select value={categoryFilter} onValueChange={setCategoryFilter}>
+                <SelectTrigger className="bg-secondary/50 border-border/50">
+                  <Filter className="w-4 h-4 mr-2" />
+                  <SelectValue placeholder="All Categories" />
+                </SelectTrigger>
+                <SelectContent className="liquid-glass border-border/50">
+                  <SelectItem value="all">All Categories</SelectItem>
+                  {categories.map((category) => (
+                    <SelectItem key={category} value={category}>
+                      {category}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
           </div>
-        </div>
+        </GlassCard>
 
         {loading ? (
           <div className="text-center py-12">
             <div className="inline-block animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary"></div>
           </div>
         ) : filteredItems.length === 0 ? (
-          <div className="text-center py-12 animate-fade-in">
+          <GlassCard className="text-center py-12 animate-fade-in">
             <p className="text-xl text-muted-foreground">
               {searchQuery || categoryFilter !== "all"
                 ? "No items match your search"
                 : "No items found yet"}
             </p>
-          </div>
+          </GlassCard>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {filteredItems.map((item) => (

@@ -2,93 +2,57 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Definition of the design system. All colors, gradients, fonts, etc should be defined here. 
-All colors MUST be HSL.
-*/
+/* Liquid Glass Design System - Dark theme with glassmorphic effects */
 
 @layer base {
   :root {
-    --background: 220 25% 97%;
-    --foreground: 220 15% 15%;
+    --background: 220 25% 8%;
+    --foreground: 220 15% 95%;
 
-    --card: 0 0% 100%;
-    --card-foreground: 220 15% 15%;
+    --card: 220 20% 12%;
+    --card-foreground: 220 15% 95%;
 
-    --popover: 0 0% 100%;
-    --popover-foreground: 220 15% 15%;
+    --popover: 220 20% 12%;
+    --popover-foreground: 220 15% 95%;
 
-    --primary: 210 95% 55%;
-    --primary-foreground: 0 0% 100%;
+    --primary: 200 90% 60%;
+    --primary-foreground: 220 25% 8%;
 
-    --secondary: 280 65% 60%;
-    --secondary-foreground: 0 0% 100%;
+    --secondary: 220 20% 18%;
+    --secondary-foreground: 220 15% 90%;
 
-    --muted: 220 20% 92%;
-    --muted-foreground: 220 10% 45%;
+    --muted: 220 15% 15%;
+    --muted-foreground: 220 10% 55%;
 
-    --accent: 160 75% 50%;
-    --accent-foreground: 0 0% 100%;
+    --accent: 180 70% 50%;
+    --accent-foreground: 220 25% 8%;
 
-    --destructive: 0 75% 55%;
+    --destructive: 0 70% 55%;
     --destructive-foreground: 0 0% 100%;
 
-    --border: 220 20% 88%;
-    --input: 220 20% 88%;
-    --ring: 210 95% 55%;
+    --border: 220 15% 20%;
+    --input: 220 15% 18%;
+    --ring: 200 90% 60%;
 
-    --radius: 1rem;
+    --radius: 1.25rem;
 
-    --glass-background: 0 0% 100%;
-    --glass-border: 220 20% 90%;
+    --glass-background: 220 20% 12%;
+    --glass-border: 220 15% 25%;
+    --glass-highlight: 0 0% 100%;
     
-    --gradient-primary: linear-gradient(135deg, hsl(210 95% 55%), hsl(280 65% 60%));
-    --gradient-secondary: linear-gradient(135deg, hsl(160 75% 50%), hsl(210 95% 55%));
-    --gradient-hero: linear-gradient(135deg, hsl(210 95% 65% / 0.1), hsl(280 65% 70% / 0.1));
+    --orb-primary: 200 90% 60%;
+    --orb-secondary: 280 70% 60%;
+    --orb-accent: 160 80% 50%;
     
-    --shadow-glass: 0 8px 32px hsl(220 25% 50% / 0.08);
-    --shadow-hover: 0 12px 40px hsl(220 25% 50% / 0.12);
+    --shadow-glass: 0 8px 32px hsl(0 0% 0% / 0.4);
+    --shadow-glow: 0 0 60px hsl(200 90% 60% / 0.15);
     
-    --transition-smooth: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    --transition-smooth: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
   }
 
   .dark {
-    --background: 220 20% 12%;
-    --foreground: 220 15% 90%;
-
-    --card: 220 18% 16%;
-    --card-foreground: 220 15% 90%;
-
-    --popover: 220 18% 16%;
-    --popover-foreground: 220 15% 90%;
-
-    --primary: 210 95% 60%;
-    --primary-foreground: 0 0% 100%;
-
-    --secondary: 280 65% 65%;
-    --secondary-foreground: 0 0% 100%;
-
-    --muted: 220 15% 20%;
-    --muted-foreground: 220 10% 60%;
-
-    --accent: 160 75% 55%;
-    --accent-foreground: 0 0% 100%;
-
-    --destructive: 0 75% 60%;
-    --destructive-foreground: 0 0% 100%;
-
-    --border: 220 15% 22%;
-    --input: 220 15% 22%;
-    --ring: 210 95% 60%;
-
-    --glass-background: 220 18% 16%;
-    --glass-border: 220 15% 25%;
-    
-    --gradient-primary: linear-gradient(135deg, hsl(210 95% 60%), hsl(280 65% 65%));
-    --gradient-secondary: linear-gradient(135deg, hsl(160 75% 55%), hsl(210 95% 60%));
-    --gradient-hero: linear-gradient(135deg, hsl(210 95% 35% / 0.15), hsl(280 65% 40% / 0.15));
-    
-    --shadow-glass: 0 8px 32px hsl(0 0% 0% / 0.3);
-    --shadow-hover: 0 12px 40px hsl(0 0% 0% / 0.4);
+    --background: 220 25% 8%;
+    --foreground: 220 15% 95%;
   }
 }
 
@@ -99,5 +63,109 @@ All colors MUST be HSL.
 
   body {
     @apply bg-background text-foreground;
+    background: hsl(var(--background));
+    min-height: 100vh;
+  }
+}
+
+@layer components {
+  .liquid-glass {
+    background: hsl(var(--glass-background) / 0.6);
+    backdrop-filter: blur(24px) saturate(180%);
+    -webkit-backdrop-filter: blur(24px) saturate(180%);
+    border: 1px solid hsl(var(--glass-border) / 0.3);
+    box-shadow: 
+      var(--shadow-glass),
+      inset 0 1px 0 hsl(var(--glass-highlight) / 0.05),
+      inset 0 -1px 0 hsl(0 0% 0% / 0.1);
+  }
+
+  .liquid-glass-subtle {
+    background: hsl(var(--glass-background) / 0.4);
+    backdrop-filter: blur(16px) saturate(150%);
+    -webkit-backdrop-filter: blur(16px) saturate(150%);
+    border: 1px solid hsl(var(--glass-border) / 0.2);
+  }
+
+  .orb {
+    position: absolute;
+    border-radius: 50%;
+    filter: blur(80px);
+    opacity: 0.4;
+    animation: float 20s ease-in-out infinite;
+    pointer-events: none;
+  }
+
+  .orb-primary {
+    background: radial-gradient(circle, hsl(var(--orb-primary)) 0%, transparent 70%);
+  }
+
+  .orb-secondary {
+    background: radial-gradient(circle, hsl(var(--orb-secondary)) 0%, transparent 70%);
+  }
+
+  .orb-accent {
+    background: radial-gradient(circle, hsl(var(--orb-accent)) 0%, transparent 70%);
+  }
+
+  .glass-button {
+    background: hsl(var(--primary) / 0.15);
+    backdrop-filter: blur(12px);
+    border: 1px solid hsl(var(--primary) / 0.3);
+    transition: var(--transition-smooth);
+  }
+
+  .glass-button:hover {
+    background: hsl(var(--primary) / 0.25);
+    border-color: hsl(var(--primary) / 0.5);
+    box-shadow: 0 0 30px hsl(var(--primary) / 0.2);
+  }
+
+  .text-glow {
+    text-shadow: 0 0 40px hsl(var(--primary) / 0.5);
+  }
+}
+
+@layer utilities {
+  @keyframes float {
+    0%, 100% {
+      transform: translate(0, 0) scale(1);
+    }
+    25% {
+      transform: translate(10%, 15%) scale(1.1);
+    }
+    50% {
+      transform: translate(-5%, 10%) scale(0.95);
+    }
+    75% {
+      transform: translate(-10%, -5%) scale(1.05);
+    }
+  }
+
+  @keyframes pulse-glow {
+    0%, 100% {
+      opacity: 0.4;
+    }
+    50% {
+      opacity: 0.6;
+    }
+  }
+
+  .animate-float {
+    animation: float 20s ease-in-out infinite;
+  }
+
+  .animate-float-delayed {
+    animation: float 25s ease-in-out infinite;
+    animation-delay: -5s;
+  }
+
+  .animate-float-slow {
+    animation: float 30s ease-in-out infinite;
+    animation-delay: -10s;
+  }
+
+  .animate-pulse-glow {
+    animation: pulse-glow 4s ease-in-out infinite;
   }
 }

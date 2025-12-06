@@ -3,6 +3,7 @@ import { useParams, useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Navbar } from "@/components/Navbar";
 import { GlassCard } from "@/components/GlassCard";
+import { OrbBackground } from "@/components/OrbBackground";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -107,9 +108,10 @@ export default function Claim() {
 
   if (!item) {
     return (
-      <div className="min-h-screen bg-gradient-hero">
+      <div className="min-h-screen relative">
+        <OrbBackground />
         <Navbar />
-        <div className="flex items-center justify-center min-h-[60vh]">
+        <div className="flex items-center justify-center min-h-[60vh] relative z-10">
           <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary"></div>
         </div>
       </div>
@@ -117,14 +119,15 @@ export default function Claim() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-hero">
+    <div className="min-h-screen relative">
+      <OrbBackground />
       <Navbar />
 
-      <main className="container mx-auto px-4 pt-24 pb-12">
+      <main className="container mx-auto px-4 pt-24 pb-12 relative z-10">
         <Button
           variant="ghost"
           onClick={() => navigate("/items")}
-          className="mb-6 animate-fade-in"
+          className="mb-6 animate-fade-in text-muted-foreground hover:text-foreground"
         >
           <ArrowLeft className="w-4 h-4 mr-2" />
           Back to Items
@@ -132,7 +135,7 @@ export default function Claim() {
 
         <div className="grid md:grid-cols-2 gap-8 max-w-6xl mx-auto">
           <GlassCard className="p-6 animate-fade-in">
-            <h2 className="text-2xl font-bold mb-4 text-foreground">
+            <h2 className="text-2xl font-bold mb-4 text-foreground text-glow">
               Item Details
             </h2>
 
@@ -146,16 +149,16 @@ export default function Claim() {
               </div>
             )}
 
-            <h3 className="text-xl font-semibold mb-2">{item.title}</h3>
+            <h3 className="text-xl font-semibold mb-2 text-foreground">{item.title}</h3>
             <p className="text-muted-foreground mb-4">{item.description}</p>
 
             <div className="space-y-3 text-sm">
               <div className="flex items-center gap-2 text-muted-foreground">
-                <MapPin className="w-4 h-4" />
+                <MapPin className="w-4 h-4 text-primary" />
                 <span>Found at: {item.location_found}</span>
               </div>
               <div className="flex items-center gap-2 text-muted-foreground">
-                <Calendar className="w-4 h-4" />
+                <Calendar className="w-4 h-4 text-primary" />
                 <span>
                   Found on: {format(new Date(item.date_found), "MMM d, yyyy")}
                 </span>
@@ -164,7 +167,7 @@ export default function Claim() {
           </GlassCard>
 
           <GlassCard className="p-6 animate-scale-in">
-            <h2 className="text-2xl font-bold mb-2 bg-gradient-primary bg-clip-text text-transparent">
+            <h2 className="text-2xl font-bold mb-2 text-foreground text-glow">
               Claim This Item
             </h2>
             <p className="text-muted-foreground mb-6">
@@ -183,6 +186,7 @@ export default function Claim() {
                   }
                   required
                   maxLength={100}
+                  className="bg-secondary/50 border-border/50 focus:border-primary"
                 />
               </div>
 
@@ -198,6 +202,7 @@ export default function Claim() {
                   }
                   required
                   maxLength={255}
+                  className="bg-secondary/50 border-border/50 focus:border-primary"
                 />
               </div>
 
@@ -212,6 +217,7 @@ export default function Claim() {
                     setFormData({ ...formData, phone: e.target.value })
                   }
                   maxLength={20}
+                  className="bg-secondary/50 border-border/50 focus:border-primary"
                 />
               </div>
 
@@ -229,12 +235,13 @@ export default function Claim() {
                   required
                   maxLength={1000}
                   rows={5}
+                  className="bg-secondary/50 border-border/50 focus:border-primary"
                 />
               </div>
 
               <Button
                 type="submit"
-                className="w-full bg-gradient-primary hover:opacity-90"
+                className="w-full glass-button text-primary font-semibold"
                 disabled={loading}
               >
                 {loading ? "Submitting..." : "Submit Claim"}

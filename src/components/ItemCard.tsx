@@ -29,7 +29,7 @@ export const ItemCard = ({
 }: ItemCardProps) => {
   return (
     <GlassCard hover className="overflow-hidden group animate-fade-in">
-      <div className="aspect-video relative overflow-hidden bg-muted">
+      <div className="aspect-video relative overflow-hidden bg-secondary/50">
         {photoUrl ? (
           <img
             src={photoUrl}
@@ -37,14 +37,14 @@ export const ItemCard = ({
             className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
           />
         ) : (
-          <div className="w-full h-full flex items-center justify-center bg-gradient-hero">
+          <div className="w-full h-full flex items-center justify-center">
             <span className="text-4xl text-muted-foreground/50">📦</span>
           </div>
         )}
         <div className="absolute top-3 right-3">
           <Badge
             variant={status === "available" ? "default" : "secondary"}
-            className="backdrop-blur-sm bg-glass/90"
+            className="liquid-glass-subtle text-foreground"
           >
             {status}
           </Badge>
@@ -55,7 +55,7 @@ export const ItemCard = ({
         <div>
           <div className="flex items-start justify-between mb-2">
             <h3 className="text-xl font-semibold text-foreground">{title}</h3>
-            <Badge variant="outline">{category}</Badge>
+            <Badge variant="outline" className="border-primary/30 text-primary">{category}</Badge>
           </div>
           <p className="text-sm text-muted-foreground line-clamp-2">
             {description}
@@ -64,11 +64,11 @@ export const ItemCard = ({
 
         <div className="space-y-2 text-sm text-muted-foreground">
           <div className="flex items-center gap-2">
-            <MapPin className="w-4 h-4" />
+            <MapPin className="w-4 h-4 text-primary" />
             <span>{location}</span>
           </div>
           <div className="flex items-center gap-2">
-            <Calendar className="w-4 h-4" />
+            <Calendar className="w-4 h-4 text-primary" />
             <span>Found on {format(new Date(dateFound), "MMM d, yyyy")}</span>
           </div>
         </div>
@@ -76,7 +76,7 @@ export const ItemCard = ({
         {status === "available" && (
           <Button
             onClick={() => onClaim(id)}
-            className="w-full bg-gradient-primary hover:opacity-90"
+            className="w-full glass-button text-primary font-semibold"
           >
             Claim This Item
           </Button>

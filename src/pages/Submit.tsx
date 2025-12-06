@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Navbar } from "@/components/Navbar";
 import { GlassCard } from "@/components/GlassCard";
+import { OrbBackground } from "@/components/OrbBackground";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -49,7 +50,7 @@ export default function Submit() {
     supabase.auth.getSession().then(({ data: { session } }) => {
       if (!session) {
         toast.error("Please sign in to submit items");
-        navigate("/auth");
+        navigate("/");
       } else {
         setUserId(session.user.id);
       }
@@ -127,14 +128,15 @@ export default function Submit() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-hero">
+    <div className="min-h-screen relative">
+      <OrbBackground />
       <Navbar />
 
-      <main className="container mx-auto px-4 pt-24 pb-12">
+      <main className="container mx-auto px-4 pt-24 pb-12 relative z-10">
         <Button
           variant="ghost"
           onClick={() => navigate(-1)}
-          className="mb-6 animate-fade-in"
+          className="mb-6 animate-fade-in text-muted-foreground hover:text-foreground"
         >
           <ArrowLeft className="w-4 h-4 mr-2" />
           Back
@@ -142,7 +144,7 @@ export default function Submit() {
 
         <div className="max-w-2xl mx-auto animate-scale-in">
           <GlassCard className="p-8">
-            <h1 className="text-3xl font-bold mb-2 bg-gradient-primary bg-clip-text text-transparent">
+            <h1 className="text-3xl font-bold mb-2 text-foreground text-glow">
               Report Found Item
             </h1>
             <p className="text-muted-foreground mb-8">
@@ -161,6 +163,7 @@ export default function Submit() {
                   }
                   required
                   maxLength={100}
+                  className="bg-secondary/50 border-border/50 focus:border-primary"
                 />
               </div>
 
@@ -176,6 +179,7 @@ export default function Submit() {
                   required
                   maxLength={1000}
                   rows={4}
+                  className="bg-secondary/50 border-border/50 focus:border-primary"
                 />
               </div>
 
@@ -189,10 +193,10 @@ export default function Submit() {
                     }
                     required
                   >
-                    <SelectTrigger id="category">
+                    <SelectTrigger id="category" className="bg-secondary/50 border-border/50">
                       <SelectValue placeholder="Select category" />
                     </SelectTrigger>
-                    <SelectContent>
+                    <SelectContent className="liquid-glass border-border/50">
                       {categories.map((cat) => (
                         <SelectItem key={cat} value={cat}>
                           {cat}
@@ -213,6 +217,7 @@ export default function Submit() {
                     }
                     max={new Date().toISOString().split("T")[0]}
                     required
+                    className="bg-secondary/50 border-border/50 focus:border-primary"
                   />
                 </div>
               </div>
@@ -228,6 +233,7 @@ export default function Submit() {
                   }
                   required
                   maxLength={100}
+                  className="bg-secondary/50 border-border/50 focus:border-primary"
                 />
               </div>
 
@@ -238,7 +244,7 @@ export default function Submit() {
                     type="button"
                     variant="outline"
                     onClick={() => document.getElementById("photo")?.click()}
-                    className="w-full"
+                    className="w-full border-border/50 hover:bg-primary/10"
                   >
                     <Upload className="w-4 h-4 mr-2" />
                     {photoFile ? "Change Photo" : "Upload Photo"}
@@ -252,7 +258,7 @@ export default function Submit() {
                   />
                 </div>
                 {photoPreview && (
-                  <div className="mt-4 rounded-lg overflow-hidden border border-border">
+                  <div className="mt-4 rounded-lg overflow-hidden border border-border/50">
                     <img
                       src={photoPreview}
                       alt="Preview"
@@ -264,7 +270,7 @@ export default function Submit() {
 
               <Button
                 type="submit"
-                className="w-full bg-gradient-primary hover:opacity-90"
+                className="w-full glass-button text-primary font-semibold"
                 disabled={loading}
               >
                 {loading ? "Submitting..." : "Submit Item"}

@@ -9,13 +9,13 @@ import { toast } from "sonner";
 export const Navbar = () => {
   const navigate = useNavigate();
   const [user, setUser] = useState<User | null>(null);
-  const [isAdmin, setIsAdmin] = useState(false);
+  const [isTeacher, setIsTeacher] = useState(false);
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
       setUser(session?.user ?? null);
       if (session?.user) {
-        checkAdminStatus(session.user.id);
+        checkTeacherStatus(session.user.id);
       }
     });
 
@@ -24,23 +24,23 @@ export const Navbar = () => {
     } = supabase.auth.onAuthStateChange((_event, session) => {
       setUser(session?.user ?? null);
       if (session?.user) {
-        checkAdminStatus(session.user.id);
+        checkTeacherStatus(session.user.id);
       } else {
-        setIsAdmin(false);
+        setIsTeacher(false);
       }
     });
 
     return () => subscription.unsubscribe();
   }, []);
 
-  const checkAdminStatus = async (userId: string) => {
+  const checkTeacherStatus = async (userId: string) => {
     const { data } = await supabase
       .from("user_roles")
       .select("role")
-      .eq("user_id", userId)
-      .eq("role", "admin")
-      .single();
-    setIsAdmin(!!data);
+      .eq("user_id", userId);
+    
+    const hasAccess = data?.some(r => r.role === "teacher" || r.role === "admin");
+    setIsTeacher(!!hasAccess);
   };
 
   const handleSignOut = async () => {
@@ -50,14 +50,14 @@ export const Navbar = () => {
   };
 
   return (
-    <nav className="fixed top-0 w-full z-50 backdrop-blur-lg bg-glass/80 border-b border-glass-border">
+    <nav className="fixed top-0 w-full z-50 liquid-glass-subtle">
       <div className="container mx-auto px-4 py-4">
         <div className="flex items-center justify-between">
-          <Link to="/" className="flex items-center space-x-2">
-            <div className="w-10 h-10 rounded-lg bg-gradient-primary flex items-center justify-center">
-              <Search className="w-6 h-6 text-white" />
+          <Link to="/items" className="flex items-center space-x-2">
+            <div className="w-10 h-10 rounded-lg bg-primary/20 border border-primary/30 flex items-center justify-center">
+              <Search className="w-6 h-6 text-primary" />
             </div>
-            <span className="text-xl font-bold bg-gradient-primary bg-clip-text text-transparent">
+            <span className="text-xl font-bold text-foreground text-glow">
               Lost & Found
             </span>
           </Link>
@@ -67,7 +67,7 @@ export const Navbar = () => {
               variant="ghost"
               size="sm"
               onClick={() => navigate("/items")}
-              className="hidden md:flex"
+              className="hidden md:flex text-muted-foreground hover:text-foreground"
             >
               <Search className="w-4 h-4 mr-2" />
               Browse Items
@@ -79,24 +79,30 @@ export const Navbar = () => {
                   variant="default"
                   size="sm"
                   onClick={() => navigate("/submit")}
-                  className="bg-gradient-primary hover:opacity-90"
+                  className="glass-button text-primary"
                 >
                   <Plus className="w-4 h-4 mr-2" />
                   Report Found Item
                 </Button>
 
-                {isAdmin && (
+                {isTeacher && (
                   <Button
                     variant="outline"
                     size="sm"
                     onClick={() => navigate("/admin")}
+                    className="border-primary/30 text-primary hover:bg-primary/10"
                   >
                     <LayoutDashboard className="w-4 h-4 mr-2" />
                     Admin
                   </Button>
                 )}
 
-                <Button variant="ghost" size="sm" onClick={handleSignOut}>
+                <Button 
+                  variant="ghost" 
+                  size="sm" 
+                  onClick={handleSignOut}
+                  className="text-muted-foreground hover:text-foreground"
+                >
                   <LogOut className="w-4 h-4 mr-2" />
                   Sign Out
                 </Button>
@@ -105,8 +111,8 @@ export const Navbar = () => {
               <Button
                 variant="default"
                 size="sm"
-                onClick={() => navigate("/auth")}
-                className="bg-gradient-primary hover:opacity-90"
+                onClick={() => navigate("/")}
+                className="glass-button text-primary"
               >
                 <LogIn className="w-4 h-4 mr-2" />
                 Sign In

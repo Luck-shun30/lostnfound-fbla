@@ -5,14 +5,19 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { GlassCard } from "@/components/GlassCard";
+import { OrbBackground } from "@/components/OrbBackground";
 import { toast } from "sonner";
 import { z } from "zod";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { User, GraduationCap } from "lucide-react";
 
 const authSchema = z.object({
   email: z.string().email("Invalid email address").max(255),
   password: z.string().min(6, "Password must be at least 6 characters").max(100),
   fullName: z.string().min(2, "Name must be at least 2 characters").max(100).optional(),
 });
+
+type AccountType = "student" | "teacher";
 
 export default function Auth() {
   const navigate = useNavigate();
@@ -21,11 +26,12 @@ export default function Auth() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [fullName, setFullName] = useState("");
+  const [accountType, setAccountType] = useState<AccountType>("student");
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
       if (session) {
-        navigate("/");
+        navigate("/items");
       }
     });
 
@@ -33,7 +39,7 @@ export default function Auth() {
       data: { subscription },
     } = supabase.auth.onAuthStateChange((_event, session) => {
       if (session) {
-        navigate("/");
+        navigate("/items");
       }
     });
 
@@ -58,11 +64,11 @@ export default function Auth() {
       }
 
       if (isSignUp) {
-        const { error } = await supabase.auth.signUp({
+        const { data, error } = await supabase.auth.signUp({
           email,
           password,
           options: {
-            emailRedirectTo: `${window.location.origin}/`,
+            emailRedirectTo: `${window.location.origin}/items`,
             data: {
               full_name: fullName,
             },
@@ -75,10 +81,23 @@ export default function Auth() {
           } else {
             toast.error(error.message);
           }
-        } else {
-          toast.success("Account created! You can now sign in.");
-          setIsSignUp(false);
+          setLoading(false);
+          return;
         }
+
+        // If teacher account, add teacher role
+        if (data.user && accountType === "teacher") {
+          const { error: roleError } = await supabase
+            .from("user_roles")
+            .insert({ user_id: data.user.id, role: "teacher" });
+
+          if (roleError) {
+            console.error("Failed to assign teacher role:", roleError);
+          }
+        }
+
+        toast.success("Account created! You can now sign in.");
+        setIsSignUp(false);
       } else {
         const { error } = await supabase.auth.signInWithPassword({
           email,
@@ -99,11 +118,13 @@ export default function Auth() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center p-4 bg-gradient-hero">
-      <div className="w-full max-w-md animate-scale-in">
+    <div className="min-h-screen flex items-center justify-center p-4 relative">
+      <OrbBackground />
+      
+      <div className="w-full max-w-md animate-scale-in relative z-10">
         <GlassCard className="p-8">
           <div className="text-center mb-8">
-            <h1 className="text-3xl font-bold mb-2 bg-gradient-primary bg-clip-text text-transparent">
+            <h1 className="text-3xl font-bold mb-2 text-foreground text-glow">
               {isSignUp ? "Create Account" : "Welcome Back"}
             </h1>
             <p className="text-muted-foreground">
@@ -115,18 +136,37 @@ export default function Auth() {
 
           <form onSubmit={handleAuth} className="space-y-4">
             {isSignUp && (
-              <div className="space-y-2">
-                <Label htmlFor="fullName">Full Name</Label>
-                <Input
-                  id="fullName"
-                  type="text"
-                  placeholder="John Doe"
-                  value={fullName}
-                  onChange={(e) => setFullName(e.target.value)}
-                  required
-                  maxLength={100}
-                />
-              </div>
+              <>
+                <div className="space-y-2">
+                  <Label>Account Type</Label>
+                  <Tabs value={accountType} onValueChange={(v) => setAccountType(v as AccountType)}>
+                    <TabsList className="grid w-full grid-cols-2 bg-secondary/50">
+                      <TabsTrigger value="student" className="flex items-center gap-2">
+                        <User className="w-4 h-4" />
+                        Student
+                      </TabsTrigger>
+                      <TabsTrigger value="teacher" className="flex items-center gap-2">
+                        <GraduationCap className="w-4 h-4" />
+                        Teacher
+                      </TabsTrigger>
+                    </TabsList>
+                  </Tabs>
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="fullName">Full Name</Label>
+                  <Input
+                    id="fullName"
+                    type="text"
+                    placeholder="John Doe"
+                    value={fullName}
+                    onChange={(e) => setFullName(e.target.value)}
+                    required
+                    maxLength={100}
+                    className="bg-secondary/50 border-border/50 focus:border-primary"
+                  />
+                </div>
+              </>
             )}
 
             <div className="space-y-2">
@@ -139,6 +179,7 @@ export default function Auth() {
                 onChange={(e) => setEmail(e.target.value)}
                 required
                 maxLength={255}
+                className="bg-secondary/50 border-border/50 focus:border-primary"
               />
             </div>
 
@@ -153,12 +194,13 @@ export default function Auth() {
                 required
                 minLength={6}
                 maxLength={100}
+                className="bg-secondary/50 border-border/50 focus:border-primary"
               />
             </div>
 
             <Button
               type="submit"
-              className="w-full bg-gradient-primary hover:opacity-90"
+              className="w-full glass-button text-primary font-semibold"
               disabled={loading}
             >
               {loading
