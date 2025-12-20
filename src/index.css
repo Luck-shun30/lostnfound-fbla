@@ -16,7 +16,7 @@
     --popover-foreground: 220 15% 95%;
 
     --primary: 200 90% 60%;
-    --primary-foreground: 220 25% 8%;
+    --primary-foreground: 0 0% 100%;
 
     --secondary: 220 20% 18%;
     --secondary-foreground: 220 15% 90%;
@@ -25,7 +25,7 @@
     --muted-foreground: 220 10% 55%;
 
     --accent: 180 70% 50%;
-    --accent-foreground: 220 25% 8%;
+    --accent-foreground: 0 0% 100%;
 
     --destructive: 0 70% 55%;
     --destructive-foreground: 0 0% 100%;
@@ -113,12 +113,14 @@
     backdrop-filter: blur(12px);
     border: 1px solid hsl(var(--primary) / 0.3);
     transition: var(--transition-smooth);
+    color: hsl(0 0% 100%);
   }
 
   .glass-button:hover {
     background: hsl(var(--primary) / 0.25);
     border-color: hsl(var(--primary) / 0.5);
     box-shadow: 0 0 30px hsl(var(--primary) / 0.2);
+    color: hsl(0 0% 100%);
   }
 
   .text-glow {
