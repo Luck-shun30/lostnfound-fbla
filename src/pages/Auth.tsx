@@ -29,17 +29,30 @@ export default function Auth() {
   const [accountType, setAccountType] = useState<AccountType>("student");
 
   useEffect(() => {
-    supabase.auth.getSession().then(({ data: { session } }) => {
+    const checkSessionAndRedirect = async (session: any) => {
       if (session) {
-        navigate("/items");
+        // Check if user is a teacher
+        const { data: roles } = await supabase
+          .from("user_roles")
+          .select("role")
+          .eq("user_id", session.user.id);
+
+        const isTeacher = roles?.some(r => r.role === "teacher" || r.role === "admin");
+        navigate(isTeacher ? "/admin" : "/items");
       }
+    };
+
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      checkSessionAndRedirect(session);
     });
 
     const {
       data: { subscription },
     } = supabase.auth.onAuthStateChange((_event, session) => {
       if (session) {
-        navigate("/items");
+        setTimeout(() => {
+          checkSessionAndRedirect(session);
+        }, 0);
       }
     });
 
@@ -200,7 +213,7 @@ export default function Auth() {
 
             <Button
               type="submit"
-              className="w-full glass-button text-primary font-semibold"
+              className="w-full bg-primary hover:bg-primary/80 text-white font-semibold"
               disabled={loading}
             >
               {loading
