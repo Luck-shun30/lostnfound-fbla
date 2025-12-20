@@ -226,7 +226,7 @@ export default function Admin() {
                 />
               </div>
               
-              <Button type="submit" className="w-full glass-button text-primary font-semibold">
+              <Button type="submit" className="w-full bg-primary hover:bg-primary/80 text-white font-semibold">
                 <ShieldCheck className="w-4 h-4 mr-2" />
                 Unlock Dashboard
               </Button>
@@ -325,7 +325,7 @@ export default function Admin() {
                           <Button
                             size="sm"
                             onClick={() => handleApproveItem(item.id)}
-                            className="glass-button text-accent"
+                            className="bg-accent hover:bg-accent/80 text-white"
                           >
                             <Check className="w-4 h-4 mr-2" />
                             Approve
@@ -405,7 +405,7 @@ export default function Admin() {
                         <Button
                           size="sm"
                           onClick={() => handleUpdateClaimStatus(claim.id, "approved")}
-                          className="glass-button text-accent"
+                          className="bg-accent hover:bg-accent/80 text-white"
                         >
                           <Check className="w-4 h-4 mr-2" />
                           Approve
