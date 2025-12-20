@@ -30,6 +30,7 @@ interface FoundItem {
 
 interface Claim {
   id: string;
+  item_id: string;
   claimant_name: string;
   claimant_email: string;
   claimant_phone: string | null;
@@ -166,18 +167,43 @@ export default function Admin() {
     }
   };
 
-  const handleUpdateClaimStatus = async (claimId: string, status: string) => {
+  const handleApproveClaim = async (claimId: string, itemId: string) => {
+    try {
+      // Delete the claim first
+      const { error: claimError } = await supabase
+        .from("claims")
+        .delete()
+        .eq("id", claimId);
+
+      if (claimError) throw claimError;
+
+      // Delete the item (it's been claimed successfully)
+      const { error: itemError } = await supabase
+        .from("found_items")
+        .delete()
+        .eq("id", itemId);
+
+      if (itemError) throw itemError;
+
+      toast.success("Claim approved - item returned to owner");
+      fetchData();
+    } catch (error) {
+      toast.error("Failed to approve claim");
+    }
+  };
+
+  const handleRejectClaim = async (claimId: string) => {
     try {
       const { error } = await supabase
         .from("claims")
-        .update({ status })
+        .update({ status: "rejected" })
         .eq("id", claimId);
 
       if (error) throw error;
-      toast.success(`Claim ${status}`);
+      toast.success("Claim rejected");
       fetchData();
     } catch (error) {
-      toast.error("Failed to update claim");
+      toast.error("Failed to reject claim");
     }
   };
 
@@ -404,7 +430,7 @@ export default function Admin() {
                       <div className="flex gap-2 pt-4">
                         <Button
                           size="sm"
-                          onClick={() => handleUpdateClaimStatus(claim.id, "approved")}
+                          onClick={() => handleApproveClaim(claim.id, claim.item_id)}
                           className="bg-accent hover:bg-accent/80 text-white"
                         >
                           <Check className="w-4 h-4 mr-2" />
@@ -413,7 +439,7 @@ export default function Admin() {
                         <Button
                           size="sm"
                           variant="outline"
-                          onClick={() => handleUpdateClaimStatus(claim.id, "rejected")}
+                          onClick={() => handleRejectClaim(claim.id)}
                           className="border-destructive/50 text-destructive hover:bg-destructive/10"
                         >
                           <X className="w-4 h-4 mr-2" />
