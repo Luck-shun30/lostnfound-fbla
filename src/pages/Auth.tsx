@@ -15,6 +15,7 @@ const authSchema = z.object({
   email: z.string().email("Invalid email address").max(255),
   password: z.string().min(6, "Password must be at least 6 characters").max(100),
   fullName: z.string().min(2, "Name must be at least 2 characters").max(100).optional(),
+  teacherCode: z.string().optional(),
 });
 
 type AccountType = "student" | "teacher";
@@ -26,6 +27,7 @@ export default function Auth() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [fullName, setFullName] = useState("");
+  const [teacherCode, setTeacherCode] = useState("");
   const [accountType, setAccountType] = useState<AccountType>("student");
 
   useEffect(() => {
@@ -98,19 +100,27 @@ export default function Auth() {
           return;
         }
 
-        // If teacher account, add teacher role
+        // If teacher account, call edge function to assign teacher role
         if (data.user && accountType === "teacher") {
-          const { error: roleError } = await supabase
-            .from("user_roles")
-            .insert({ user_id: data.user.id, role: "teacher" });
+          const { data: session } = await supabase.auth.getSession();
+          
+          if (session?.session) {
+            const response = await supabase.functions.invoke("assign-teacher-role", {
+              body: { accessCode: teacherCode },
+            });
 
-          if (roleError) {
-            console.error("Failed to assign teacher role:", roleError);
+            if (response.error || response.data?.error) {
+              toast.error(response.data?.error || "Failed to assign teacher role. Please check your access code.");
+              // Sign out the user since teacher role failed
+              await supabase.auth.signOut();
+              setLoading(false);
+              return;
+            }
           }
         }
 
-        toast.success("Account created! You can now sign in.");
-        setIsSignUp(false);
+        toast.success("Account created successfully!");
+        // The onAuthStateChange will handle redirect
       } else {
         const { error } = await supabase.auth.signInWithPassword({
           email,
@@ -179,6 +189,24 @@ export default function Auth() {
                     className="bg-secondary/50 border-border/50 focus:border-primary"
                   />
                 </div>
+
+                {accountType === "teacher" && (
+                  <div className="space-y-2">
+                    <Label htmlFor="teacherCode">Teacher Access Code</Label>
+                    <Input
+                      id="teacherCode"
+                      type="password"
+                      placeholder="Enter teacher access code"
+                      value={teacherCode}
+                      onChange={(e) => setTeacherCode(e.target.value)}
+                      required
+                      className="bg-secondary/50 border-border/50 focus:border-primary"
+                    />
+                    <p className="text-xs text-muted-foreground">
+                      Contact administration for the teacher access code
+                    </p>
+                  </div>
+                )}
               </>
             )}
 
