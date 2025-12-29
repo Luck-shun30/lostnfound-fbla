@@ -1,7 +1,7 @@
+// Items page: lists approved found items and provides search/filter tools.
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Navbar } from "@/components/Navbar";
-import { OrbBackground } from "@/components/OrbBackground";
 import { ItemCard } from "@/components/ItemCard";
 import { GlassCard } from "@/components/GlassCard";
 import { Input } from "@/components/ui/input";
@@ -84,19 +84,16 @@ export default function Items() {
 
   return (
     <div className="min-h-screen relative">
-      <OrbBackground />
       <Navbar />
 
       <main className="container mx-auto px-4 pt-24 pb-12 relative z-10">
+        {/* Page header */}
         <div className="mb-8 animate-fade-in">
-          <h1 className="text-4xl font-bold mb-4 text-foreground text-glow">
-            Found Items
-          </h1>
-          <p className="text-muted-foreground">
-            Browse through items found around campus
-          </p>
+          <h1 className="text-4xl font-bold mb-4 text-foreground">Found Items</h1>
+          <p className="text-muted-foreground">Browse through items found around campus</p>
         </div>
 
+        {/* Search & filter controls */}
         <GlassCard subtle className="mb-8 p-4 animate-fade-in">
           <div className="flex flex-col md:flex-row gap-4">
             <div className="flex-1 relative">
@@ -105,7 +102,7 @@ export default function Items() {
                 placeholder="Search items..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="pl-10 bg-secondary/50 border-border/50 focus:border-primary"
+                className="pl-10 bg-secondary/50 border-border/50 focus:border-foreground"
               />
             </div>
 
@@ -129,8 +126,8 @@ export default function Items() {
         </GlassCard>
 
         {loading ? (
-          <div className="text-center py-12">
-            <div className="inline-block animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary"></div>
+            <div className="text-center py-12">
+            <div className="inline-block animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-black"></div>
           </div>
         ) : filteredItems.length === 0 ? (
           <GlassCard className="text-center py-12 animate-fade-in">

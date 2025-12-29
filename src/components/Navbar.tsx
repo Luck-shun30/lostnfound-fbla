@@ -54,12 +54,10 @@ export const Navbar = () => {
       <div className="container mx-auto px-4 py-4">
         <div className="flex items-center justify-between">
           <Link to="/items" className="flex items-center space-x-2">
-            <div className="w-10 h-10 rounded-lg bg-primary/20 border border-primary/30 flex items-center justify-center">
-              <Search className="w-6 h-6 text-primary" />
+            <div className="w-10 h-10 rounded-lg bg-white/90 border border-black flex items-center justify-center">
+              <Search className="w-6 h-6 text-foreground" />
             </div>
-            <span className="text-xl font-bold text-foreground text-glow">
-              Lost & Found
-            </span>
+            <span className="text-xl font-bold text-foreground">Lost & Found</span>
           </Link>
 
           <div className="flex items-center space-x-4">
@@ -79,7 +77,7 @@ export const Navbar = () => {
                   variant="default"
                   size="sm"
                   onClick={() => navigate("/submit")}
-                  className="glass-button text-primary"
+                  className="nb-button"
                 >
                   <Plus className="w-4 h-4 mr-2" />
                   Report Found Item
@@ -90,7 +88,7 @@ export const Navbar = () => {
                     variant="outline"
                     size="sm"
                     onClick={() => navigate("/admin")}
-                    className="border-primary/30 text-primary hover:bg-primary/10"
+                    className="nb-outline text-foreground"
                   >
                     <LayoutDashboard className="w-4 h-4 mr-2" />
                     Admin
@@ -107,17 +105,28 @@ export const Navbar = () => {
                   Sign Out
                 </Button>
               </>
-            ) : (
-              <Button
-                variant="default"
-                size="sm"
-                onClick={() => navigate("/")}
-                className="glass-button text-primary"
-              >
-                <LogIn className="w-4 h-4 mr-2" />
-                Sign In
-              </Button>
-            )}
+              ) : (
+                <div className="flex items-center gap-2">
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => navigate("/auth")}
+                    className="text-muted-foreground hover:text-foreground"
+                  >
+                    <LogIn className="w-4 h-4 mr-2" />
+                    Sign In
+                  </Button>
+
+                  <Button
+                    variant="default"
+                    size="sm"
+                    onClick={() => navigate("/auth", { state: { isSignUp: true } })}
+                    className="nb-button text-white"
+                  >
+                    Sign Up
+                  </Button>
+                </div>
+              )}
           </div>
         </div>
       </div>

@@ -6,38 +6,39 @@
 
 @layer base {
   :root {
-    --background: 220 25% 8%;
-    --foreground: 220 15% 95%;
+    /* Simplified black & white palette for neobrutal style */
+    --background: 0 0% 100%; /* white background */
+    --foreground: 0 0% 0%; /* black text */
 
-    --card: 220 20% 12%;
-    --card-foreground: 220 15% 95%;
+    --card: 0 0% 100%;
+    --card-foreground: 0 0% 0%;
 
-    --popover: 220 20% 12%;
-    --popover-foreground: 220 15% 95%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 0 0% 0%;
 
-    --primary: 200 90% 60%;
+    --primary: 0 0% 0%; /* primary actions rendered as black */
     --primary-foreground: 0 0% 100%;
 
-    --secondary: 220 20% 18%;
-    --secondary-foreground: 220 15% 90%;
+    --secondary: 0 0% 100%;
+    --secondary-foreground: 0 0% 0%;
 
-    --muted: 220 15% 15%;
-    --muted-foreground: 220 10% 55%;
+    --muted: 0 0% 96%;
+    --muted-foreground: 0 0% 40%;
 
-    --accent: 180 70% 50%;
+    --accent: 0 0% 0%;
     --accent-foreground: 0 0% 100%;
 
-    --destructive: 0 70% 55%;
+    --destructive: 0 0% 0%;
     --destructive-foreground: 0 0% 100%;
 
-    --border: 220 15% 20%;
-    --input: 220 15% 18%;
-    --ring: 200 90% 60%;
+    --border: 0 0% 5%;
+    --input: 0 0% 98%;
+    --ring: 0 0% 0%;
 
     --radius: 1.25rem;
 
     --glass-background: 220 20% 12%;
-    --glass-border: 220 15% 25%;
+    --glass-border: 0 0% 8%;
     --glass-highlight: 0 0% 100%;
     
     --orb-primary: 200 90% 60%;
@@ -64,6 +65,7 @@
   body {
     @apply bg-background text-foreground;
     background: hsl(var(--background));
+    font-family: 'DM Sans', ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
     min-height: 100vh;
   }
 }
@@ -144,6 +146,47 @@
     }
   }
 
+
+  /* Neobrutalism theme utilities: strong borders, blocky shadows, flat fills */
+  @layer components {
+    .nb-card {
+      background: hsl(var(--card));
+      color: hsl(var(--card-foreground));
+      border: 6px solid hsl(220 10% 12%);
+      box-shadow: 12px 12px 0 rgba(0,0,0,0.25);
+      border-radius: 0.75rem;
+    }
+
+    .nb-card-subtle {
+      background: hsl(var(--background));
+      color: hsl(var(--foreground));
+      border: 4px solid hsl(220 10% 18%);
+      box-shadow: 8px 8px 0 rgba(0,0,0,0.18);
+      border-radius: 0.6rem;
+    }
+
+    .nb-button {
+      border: 4px solid hsl(220 10% 12%);
+      background: hsl(var(--primary));
+      color: hsl(0 0% 100%);
+      box-shadow: 6px 6px 0 rgba(0,0,0,0.22);
+      border-radius: 0.5rem;
+      padding: 0.5rem 1rem;
+      font-weight: 600;
+      transition: transform 0.06s linear, box-shadow 0.06s linear;
+    }
+
+    .nb-button:active {
+      transform: translate(4px, 4px);
+      box-shadow: 0 0 0 rgba(0,0,0,0);
+    }
+
+    /* Neobrutal small utility for outlines used across elements */
+    .nb-outline {
+      border: 4px solid hsl(220 10% 12%);
+      box-shadow: 6px 6px 0 rgba(0,0,0,0.18);
+    }
+  }
   @keyframes pulse-glow {
     0%, 100% {
       opacity: 0.4;

@@ -14,9 +14,11 @@ export const GlassCard = ({ children, className, hover = false, subtle = false, 
     <div
       style={style}
       className={cn(
-        subtle ? "liquid-glass-subtle" : "liquid-glass",
-        "rounded-lg transition-all duration-300",
-        hover && "hover:shadow-glow hover:scale-[1.02]",
+        // Use neobrutal card styles site-wide (nb-card / nb-card-subtle)
+        subtle ? "nb-card-subtle" : "nb-card",
+        // maintain optional transition/hover classes passed by callers
+        "transition-all duration-150",
+        hover && "hover:scale-[1.02]",
         className
       )}
     >

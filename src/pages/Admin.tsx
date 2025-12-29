@@ -1,9 +1,9 @@
+// Admin dashboard: manage pending items and claims. Restricted to teacher/admin users.
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Navbar } from "@/components/Navbar";
 import { GlassCard } from "@/components/GlassCard";
-import { OrbBackground } from "@/components/OrbBackground";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -210,10 +210,10 @@ export default function Admin() {
   if (checkingAuth) {
     return (
       <div className="min-h-screen relative">
-        <OrbBackground />
         <Navbar />
-        <div className="flex items-center justify-center min-h-[60vh] relative z-10">
-          <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary"></div>
+          <div className="flex items-center justify-center min-h-[60vh] relative z-10">
+          {/* Checking user access - spinner while verifying teacher/admin status */}
+          <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-black"></div>
         </div>
       </div>
     );
@@ -226,15 +226,15 @@ export default function Admin() {
   if (!isAuthenticated) {
     return (
       <div className="min-h-screen relative">
-        <OrbBackground />
         <Navbar />
         <div className="flex items-center justify-center min-h-[80vh] p-4 relative z-10">
+          {/* Admin password prompt before showing dashboard */}
           <GlassCard className="p-8 max-w-md w-full animate-scale-in">
             <div className="text-center mb-6">
-              <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-primary/20 flex items-center justify-center">
-                <Lock className="w-8 h-8 text-primary" />
+              <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-white/90 border border-black flex items-center justify-center">
+                <Lock className="w-8 h-8 text-foreground" />
               </div>
-              <h1 className="text-2xl font-bold text-foreground text-glow">Admin Access</h1>
+              <h1 className="text-2xl font-bold text-foreground">Admin Access</h1>
               <p className="text-muted-foreground mt-2">Enter the admin password to continue</p>
             </div>
             
@@ -248,11 +248,11 @@ export default function Admin() {
                   value={adminPassword}
                   onChange={(e) => setAdminPassword(e.target.value)}
                   required
-                  className="bg-secondary/50 border-border/50 focus:border-primary"
+                  className="bg-secondary/50 border-border/50 focus:border-foreground"
                 />
               </div>
               
-              <Button type="submit" className="w-full bg-primary hover:bg-primary/80 text-white font-semibold">
+              <Button type="submit" className="w-full nb-button text-white font-semibold">
                 <ShieldCheck className="w-4 h-4 mr-2" />
                 Unlock Dashboard
               </Button>
@@ -266,10 +266,10 @@ export default function Admin() {
   if (loading) {
     return (
       <div className="min-h-screen relative">
-        <OrbBackground />
         <Navbar />
-        <div className="flex items-center justify-center min-h-[60vh] relative z-10">
-          <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary"></div>
+          <div className="flex items-center justify-center min-h-[60vh] relative z-10">
+          {/* Loading dashboard data */}
+          <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-black"></div>
         </div>
       </div>
     );
@@ -277,13 +277,11 @@ export default function Admin() {
 
   return (
     <div className="min-h-screen relative">
-      <OrbBackground />
       <Navbar />
 
       <main className="container mx-auto px-4 pt-24 pb-12 relative z-10">
-        <h1 className="text-4xl font-bold mb-8 text-foreground text-glow animate-fade-in">
-          Admin Dashboard
-        </h1>
+        {/* Admin dashboard: approve/reject items and manage claims */}
+        <h1 className="text-4xl font-bold mb-8 text-foreground animate-fade-in">Admin Dashboard</h1>
 
         <Tabs defaultValue="items" className="space-y-6">
           <TabsList className="liquid-glass-subtle grid w-full max-w-md grid-cols-2">
@@ -327,7 +325,7 @@ export default function Admin() {
                               {format(new Date(item.created_at), "MMM d, yyyy")}
                             </p>
                           </div>
-                          <Badge className="bg-primary/20 text-primary border-primary/30">{item.category}</Badge>
+                          <Badge className="bg-white/90 text-foreground border-black">{item.category}</Badge>
                         </div>
 
                         <p className="text-sm text-muted-foreground">
@@ -351,7 +349,7 @@ export default function Admin() {
                           <Button
                             size="sm"
                             onClick={() => handleApproveItem(item.id)}
-                            className="bg-accent hover:bg-accent/80 text-white"
+                            className="nb-button"
                           >
                             <Check className="w-4 h-4 mr-2" />
                             Approve
@@ -360,7 +358,7 @@ export default function Admin() {
                             size="sm"
                             variant="outline"
                             onClick={() => handleRejectItem(item.id)}
-                            className="border-destructive/50 text-destructive hover:bg-destructive/10"
+                            className="nb-outline text-foreground"
                           >
                             <X className="w-4 h-4 mr-2" />
                             Reject
@@ -369,7 +367,7 @@ export default function Admin() {
                             size="sm"
                             variant="ghost"
                             onClick={() => handleDeleteItem(item.id)}
-                            className="text-destructive hover:bg-destructive/10"
+                            className="nb-outline text-foreground"
                           >
                             <Trash2 className="w-4 h-4 mr-2" />
                             Delete
@@ -431,7 +429,7 @@ export default function Admin() {
                         <Button
                           size="sm"
                           onClick={() => handleApproveClaim(claim.id, claim.item_id)}
-                          className="bg-accent hover:bg-accent/80 text-white"
+                          className="nb-button"
                         >
                           <Check className="w-4 h-4 mr-2" />
                           Approve
@@ -440,7 +438,7 @@ export default function Admin() {
                           size="sm"
                           variant="outline"
                           onClick={() => handleRejectClaim(claim.id)}
-                          className="border-destructive/50 text-destructive hover:bg-destructive/10"
+                          className="nb-outline text-foreground"
                         >
                           <X className="w-4 h-4 mr-2" />
                           Reject

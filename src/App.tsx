@@ -4,6 +4,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import Auth from "./pages/Auth";
+import Home from "./pages/Home";
 import Items from "./pages/Items";
 import Submit from "./pages/Submit";
 import Claim from "./pages/Claim";
@@ -19,8 +20,8 @@ const App = () => (
       <Sonner />
       <BrowserRouter>
         <Routes>
-          <Route path="/" element={<Auth />} />
-          <Route path="/auth" element={<Navigate to="/" replace />} />
+          <Route path="/" element={<Home />} />
+          <Route path="/auth" element={<Auth />} />
           <Route path="/items" element={<Items />} />
           <Route path="/submit" element={<Submit />} />
           <Route path="/claim/:id" element={<Claim />} />

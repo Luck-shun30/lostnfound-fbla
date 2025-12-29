@@ -1,9 +1,10 @@
+// Submit page: allows signed-in users to report found items with optional photo upload.
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Navbar } from "@/components/Navbar";
 import { GlassCard } from "@/components/GlassCard";
-import { OrbBackground } from "@/components/OrbBackground";
+// OrbBackground removed to keep pages visually consistent with neobrutal theme
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -129,7 +130,6 @@ export default function Submit() {
 
   return (
     <div className="min-h-screen relative">
-      <OrbBackground />
       <Navbar />
 
       <main className="container mx-auto px-4 pt-24 pb-12 relative z-10">
@@ -142,15 +142,13 @@ export default function Submit() {
           Back
         </Button>
 
+        {/* Form container: report a found item */}
         <div className="max-w-2xl mx-auto animate-scale-in">
           <GlassCard className="p-8">
-            <h1 className="text-3xl font-bold mb-2 text-foreground text-glow">
-              Report Found Item
-            </h1>
-            <p className="text-muted-foreground mb-8">
-              Help reunite lost items with their owners
-            </p>
+            <h1 className="text-3xl font-bold mb-2 text-foreground">Report Found Item</h1>
+            <p className="text-muted-foreground mb-8">Help reunite lost items with their owners</p>
 
+            {/* Submit form */}
             <form onSubmit={handleSubmit} className="space-y-6">
               <div className="space-y-2">
                 <Label htmlFor="title">Item Title *</Label>
@@ -163,7 +161,7 @@ export default function Submit() {
                   }
                   required
                   maxLength={100}
-                  className="bg-secondary/50 border-border/50 focus:border-primary"
+                  className="bg-secondary/50 border-border/50 focus:border-foreground"
                 />
               </div>
 
@@ -179,7 +177,7 @@ export default function Submit() {
                   required
                   maxLength={1000}
                   rows={4}
-                  className="bg-secondary/50 border-border/50 focus:border-primary"
+                  className="bg-secondary/50 border-border/50 focus:border-foreground"
                 />
               </div>
 
@@ -217,7 +215,7 @@ export default function Submit() {
                     }
                     max={new Date().toISOString().split("T")[0]}
                     required
-                    className="bg-secondary/50 border-border/50 focus:border-primary"
+                    className="bg-secondary/50 border-border/50 focus:border-foreground"
                   />
                 </div>
               </div>
@@ -233,7 +231,7 @@ export default function Submit() {
                   }
                   required
                   maxLength={100}
-                  className="bg-secondary/50 border-border/50 focus:border-primary"
+                    className="bg-secondary/50 border-border/50 focus:border-foreground"
                 />
               </div>
 
@@ -244,7 +242,7 @@ export default function Submit() {
                     type="button"
                     variant="outline"
                     onClick={() => document.getElementById("photo")?.click()}
-                    className="w-full border-border/50 hover:bg-primary/10"
+                    className="w-full border-border/50 nb-outline"
                   >
                     <Upload className="w-4 h-4 mr-2" />
                     {photoFile ? "Change Photo" : "Upload Photo"}
@@ -259,18 +257,14 @@ export default function Submit() {
                 </div>
                 {photoPreview && (
                   <div className="mt-4 rounded-lg overflow-hidden border border-border/50">
-                    <img
-                      src={photoPreview}
-                      alt="Preview"
-                      className="w-full h-64 object-cover"
-                    />
+                    <img src={photoPreview} alt="Preview" className="w-full h-64 object-cover" />
                   </div>
                 )}
               </div>
 
               <Button
                 type="submit"
-                className="w-full glass-button text-primary font-semibold"
+                className="w-full nb-button text-black font-semibold"
                 disabled={loading}
               >
                 {loading ? "Submitting..." : "Submit Item"}

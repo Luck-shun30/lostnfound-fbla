@@ -1,11 +1,14 @@
+// Auth page: sign in / sign up UI and flows.
+// - Handles session redirect after login
+// - Supports student and teacher signups (teacher uses access code)
 import { useState, useEffect } from "react";
+import { useLocation } from "react-router-dom";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { GlassCard } from "@/components/GlassCard";
-import { OrbBackground } from "@/components/OrbBackground";
 import { toast } from "sonner";
 import { z } from "zod";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -22,7 +25,11 @@ type AccountType = "student" | "teacher";
 
 export default function Auth() {
   const navigate = useNavigate();
-  const [isSignUp, setIsSignUp] = useState(false);
+  const location = useLocation();
+  const [isSignUp, setIsSignUp] = useState<boolean>(() => {
+    // If navigated with state { isSignUp: true }, default to sign up
+    return (location.state as any)?.isSignUp ?? false;
+  });
   const [loading, setLoading] = useState(false);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -142,12 +149,11 @@ export default function Auth() {
 
   return (
     <div className="min-h-screen flex items-center justify-center p-4 relative">
-      <OrbBackground />
-      
       <div className="w-full max-w-md animate-scale-in relative z-10">
+        {/* Auth Card: centered form container */}
         <GlassCard className="p-8">
           <div className="text-center mb-8">
-            <h1 className="text-3xl font-bold mb-2 text-foreground text-glow">
+            <h1 className="text-3xl font-bold mb-2 text-foreground">
               {isSignUp ? "Create Account" : "Welcome Back"}
             </h1>
             <p className="text-muted-foreground">
@@ -186,7 +192,7 @@ export default function Auth() {
                     onChange={(e) => setFullName(e.target.value)}
                     required
                     maxLength={100}
-                    className="bg-secondary/50 border-border/50 focus:border-primary"
+                    className="bg-secondary/50 border-border/50 focus:border-foreground"
                   />
                 </div>
 
@@ -200,7 +206,7 @@ export default function Auth() {
                       value={teacherCode}
                       onChange={(e) => setTeacherCode(e.target.value)}
                       required
-                      className="bg-secondary/50 border-border/50 focus:border-primary"
+                      className="bg-secondary/50 border-border/50 focus:border-foreground"
                     />
                     <p className="text-xs text-muted-foreground">
                       Contact administration for the teacher access code
@@ -220,7 +226,7 @@ export default function Auth() {
                 onChange={(e) => setEmail(e.target.value)}
                 required
                 maxLength={255}
-                className="bg-secondary/50 border-border/50 focus:border-primary"
+                className="bg-secondary/50 border-border/50 focus:border-foreground"
               />
             </div>
 
@@ -235,13 +241,13 @@ export default function Auth() {
                 required
                 minLength={6}
                 maxLength={100}
-                className="bg-secondary/50 border-border/50 focus:border-primary"
+                className="bg-secondary/50 border-border/50 focus:border-foreground"
               />
             </div>
 
             <Button
               type="submit"
-              className="w-full bg-primary hover:bg-primary/80 text-white font-semibold"
+              className="w-full nb-button text-black font-semibold"
               disabled={loading}
             >
               {loading
@@ -255,7 +261,7 @@ export default function Auth() {
               <button
                 type="button"
                 onClick={() => setIsSignUp(!isSignUp)}
-                className="text-sm text-primary hover:underline"
+                className="text-sm text-foreground hover:underline"
               >
                 {isSignUp
                   ? "Already have an account? Sign in"

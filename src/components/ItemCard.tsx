@@ -29,7 +29,7 @@ export const ItemCard = ({
 }: ItemCardProps) => {
   return (
     <GlassCard hover className="overflow-hidden group animate-fade-in">
-      <div className="aspect-video relative overflow-hidden bg-secondary/50">
+      <div className="aspect-video relative overflow-hidden bg-white/95">
         {photoUrl ? (
           <img
             src={photoUrl}
@@ -44,7 +44,7 @@ export const ItemCard = ({
         <div className="absolute top-3 right-3">
           <Badge
             variant={status === "available" ? "default" : "secondary"}
-            className="liquid-glass-subtle text-foreground"
+            className="nb-card-subtle text-foreground"
           >
             {status}
           </Badge>
@@ -55,7 +55,7 @@ export const ItemCard = ({
         <div>
           <div className="flex items-start justify-between mb-2">
             <h3 className="text-xl font-semibold text-foreground">{title}</h3>
-            <Badge variant="outline" className="border-primary/30 text-primary">{category}</Badge>
+            <Badge variant="outline" className="border-black text-foreground">{category}</Badge>
           </div>
           <p className="text-sm text-muted-foreground line-clamp-2">
             {description}
@@ -64,20 +64,17 @@ export const ItemCard = ({
 
         <div className="space-y-2 text-sm text-muted-foreground">
           <div className="flex items-center gap-2">
-            <MapPin className="w-4 h-4 text-primary" />
+            <MapPin className="w-4 h-4 text-foreground" />
             <span>{location}</span>
           </div>
           <div className="flex items-center gap-2">
-            <Calendar className="w-4 h-4 text-primary" />
+            <Calendar className="w-4 h-4 text-foreground" />
             <span>Found on {format(new Date(dateFound), "MMM d, yyyy")}</span>
           </div>
         </div>
 
         {status === "available" && (
-          <Button
-            onClick={() => onClaim(id)}
-            className="w-full glass-button text-primary font-semibold"
-          >
+          <Button onClick={() => onClaim(id)} className="w-full nb-button">
             Claim This Item
           </Button>
         )}

@@ -1,9 +1,9 @@
+// Claim page: view item details and submit a claim form to request the item.
 import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Navbar } from "@/components/Navbar";
 import { GlassCard } from "@/components/GlassCard";
-import { OrbBackground } from "@/components/OrbBackground";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -109,10 +109,9 @@ export default function Claim() {
   if (!item) {
     return (
       <div className="min-h-screen relative">
-        <OrbBackground />
         <Navbar />
-        <div className="flex items-center justify-center min-h-[60vh] relative z-10">
-          <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary"></div>
+          <div className="flex items-center justify-center min-h-[60vh] relative z-10">
+          <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-black"></div>
         </div>
       </div>
     );
@@ -120,7 +119,6 @@ export default function Claim() {
 
   return (
     <div className="min-h-screen relative">
-      <OrbBackground />
       <Navbar />
 
       <main className="container mx-auto px-4 pt-24 pb-12 relative z-10">
@@ -134,10 +132,9 @@ export default function Claim() {
         </Button>
 
         <div className="grid md:grid-cols-2 gap-8 max-w-6xl mx-auto">
+          {/* Item details panel */}
           <GlassCard className="p-6 animate-fade-in">
-            <h2 className="text-2xl font-bold mb-4 text-foreground text-glow">
-              Item Details
-            </h2>
+            <h2 className="text-2xl font-bold mb-4 text-foreground">Item Details</h2>
 
             {item.photo_url && (
               <div className="mb-6 rounded-lg overflow-hidden">
@@ -154,11 +151,11 @@ export default function Claim() {
 
             <div className="space-y-3 text-sm">
               <div className="flex items-center gap-2 text-muted-foreground">
-                <MapPin className="w-4 h-4 text-primary" />
+                <MapPin className="w-4 h-4 text-foreground" />
                 <span>Found at: {item.location_found}</span>
               </div>
               <div className="flex items-center gap-2 text-muted-foreground">
-                <Calendar className="w-4 h-4 text-primary" />
+                <Calendar className="w-4 h-4 text-foreground" />
                 <span>
                   Found on: {format(new Date(item.date_found), "MMM d, yyyy")}
                 </span>
@@ -166,13 +163,10 @@ export default function Claim() {
             </div>
           </GlassCard>
 
+          {/* Claim form panel: collects claimant information and explanation */}
           <GlassCard className="p-6 animate-scale-in">
-            <h2 className="text-2xl font-bold mb-2 text-foreground text-glow">
-              Claim This Item
-            </h2>
-            <p className="text-muted-foreground mb-6">
-              Please provide details to verify ownership
-            </p>
+            <h2 className="text-2xl font-bold mb-2 text-foreground">Claim This Item</h2>
+            <p className="text-muted-foreground mb-6">Please provide details to verify ownership</p>
 
             <form onSubmit={handleSubmit} className="space-y-4">
               <div className="space-y-2">
@@ -186,7 +180,7 @@ export default function Claim() {
                   }
                   required
                   maxLength={100}
-                  className="bg-secondary/50 border-border/50 focus:border-primary"
+                  className="bg-secondary/50 border-border/50 focus:border-foreground"
                 />
               </div>
 
@@ -202,7 +196,7 @@ export default function Claim() {
                   }
                   required
                   maxLength={255}
-                  className="bg-secondary/50 border-border/50 focus:border-primary"
+                  className="bg-secondary/50 border-border/50 focus:border-foreground"
                 />
               </div>
 
@@ -217,7 +211,7 @@ export default function Claim() {
                     setFormData({ ...formData, phone: e.target.value })
                   }
                   maxLength={20}
-                  className="bg-secondary/50 border-border/50 focus:border-primary"
+                  className="bg-secondary/50 border-border/50 focus:border-foreground"
                 />
               </div>
 
@@ -235,13 +229,13 @@ export default function Claim() {
                   required
                   maxLength={1000}
                   rows={5}
-                  className="bg-secondary/50 border-border/50 focus:border-primary"
+                  className="bg-secondary/50 border-border/50 focus:border-foreground"
                 />
               </div>
 
               <Button
                 type="submit"
-                className="w-full glass-button text-primary font-semibold"
+                className="w-full nb-button text-black font-semibold"
                 disabled={loading}
               >
                 {loading ? "Submitting..." : "Submit Claim"}
