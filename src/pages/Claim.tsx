@@ -124,6 +124,7 @@ export default function Claim() {
       <main className="container mx-auto px-4 pt-24 pb-12 relative z-10">
         <Button
           variant="ghost"
+          aria-label="Back to items"
           onClick={() => navigate("/items")}
           className="mb-6 animate-fade-in text-muted-foreground hover:text-foreground"
         >
@@ -235,7 +236,8 @@ export default function Claim() {
 
               <Button
                 type="submit"
-                className="w-full nb-button text-black font-semibold"
+                aria-label="Submit claim"
+                className="w-full nb-button accent-gold-bg font-semibold"
                 disabled={loading}
               >
                 {loading ? "Submitting..." : "Submit Claim"}

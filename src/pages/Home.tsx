@@ -32,11 +32,11 @@ export default function Home() {
 
               <div className="flex items-center gap-3">
                 <Link to="/auth" state={{ isSignUp: true }}>
-                  <Button variant="default" className="bg-white text-black border-black">Sign Up</Button>
+                  <Button aria-label="Sign up" variant="default" className="bg-white text-black border-black accent-gold-bg">Sign Up</Button>
                 </Link>
 
                 <Link to="/auth">
-                  <Button variant="ghost" className="bg-white text-black border-transparent">Sign In</Button>
+                  <Button aria-label="Sign in" variant="ghost" className="bg-white text-black border-transparent">Sign In</Button>
                 </Link>
               </div>
             </div>

@@ -49,6 +49,12 @@
     --shadow-glow: 0 0 60px hsl(200 90% 60% / 0.15);
     
     --transition-smooth: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+     /* Accent colors for highlights throughout the site (color-blind friendly and high contrast)
+       - Green is used for confirmations/success actions (white text on green)
+       - Gold is used for primary CTAs (black text on gold for high contrast)
+     */
+     --accent-green: 142 55% 30%; /* deep green for good contrast with white */
+     --accent-gold: 42 95% 40%; /* darker gold/mustard to contrast with black text */
   }
 
   .dark {
@@ -167,8 +173,9 @@
 
     .nb-button {
       border: 4px solid hsl(220 10% 12%);
-      background: hsl(var(--primary));
-      color: hsl(0 0% 100%);
+      /* Use the page background for button fill and black text for accessibility */
+      background: hsl(var(--background));
+      color: hsl(var(--foreground));
       box-shadow: 6px 6px 0 rgba(0,0,0,0.22);
       border-radius: 0.5rem;
       padding: 0.5rem 1rem;
@@ -186,6 +193,16 @@
       border: 4px solid hsl(220 10% 12%);
       box-shadow: 6px 6px 0 rgba(0,0,0,0.18);
     }
+
+    /* Utility classes to apply accent color borders/fills */
+    .accent-green-border { border-color: hsl(var(--accent-green)); }
+    .accent-gold-border { border-color: hsl(var(--accent-gold)); }
+    .accent-green-bg { background: hsl(var(--accent-green)); color: hsl(0 0% 100%); }
+    .accent-gold-bg { background: hsl(var(--accent-gold)); color: hsl(var(--foreground)); }
+
+    /* Focus styles for accessibility */
+    .accent-green-bg:focus-visible, .accent-green-border:focus-visible { box-shadow: 0 0 0 4px hsl(var(--accent-green) / 0.18); outline: none; }
+    .accent-gold-bg:focus-visible, .accent-gold-border:focus-visible { box-shadow: 0 0 0 4px hsl(var(--accent-gold) / 0.18); outline: none; }
   }
   @keyframes pulse-glow {
     0%, 100% {

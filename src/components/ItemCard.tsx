@@ -74,7 +74,7 @@ export const ItemCard = ({
         </div>
 
         {status === "available" && (
-          <Button onClick={() => onClaim(id)} className="w-full nb-button">
+          <Button aria-label={`Claim item ${title}`} onClick={() => onClaim(id)} className="w-full nb-button accent-green-bg">
             Claim This Item
           </Button>
         )}

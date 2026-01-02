@@ -135,6 +135,7 @@ export default function Submit() {
       <main className="container mx-auto px-4 pt-24 pb-12 relative z-10">
         <Button
           variant="ghost"
+          aria-label="Go back"
           onClick={() => navigate(-1)}
           className="mb-6 animate-fade-in text-muted-foreground hover:text-foreground"
         >
@@ -240,6 +241,7 @@ export default function Submit() {
                 <div className="flex items-center gap-4">
                   <Button
                     type="button"
+                    aria-label={photoFile ? "Change uploaded photo" : "Upload photo"}
                     variant="outline"
                     onClick={() => document.getElementById("photo")?.click()}
                     className="w-full border-border/50 nb-outline"
@@ -264,7 +266,8 @@ export default function Submit() {
 
               <Button
                 type="submit"
-                className="w-full nb-button text-black font-semibold"
+                aria-label="Submit found item"
+                className="w-full nb-button accent-gold-bg font-semibold"
                 disabled={loading}
               >
                 {loading ? "Submitting..." : "Submit Item"}

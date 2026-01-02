@@ -247,7 +247,8 @@ export default function Auth() {
 
             <Button
               type="submit"
-              className="w-full nb-button text-black font-semibold"
+              aria-label={isSignUp ? "Create account" : "Sign in"}
+              className={`w-full nb-button ${isSignUp ? "accent-gold-bg" : ""} font-semibold`}
               disabled={loading}
             >
               {loading
@@ -260,6 +261,7 @@ export default function Auth() {
             <div className="text-center">
               <button
                 type="button"
+                aria-label={isSignUp ? "Switch to sign in" : "Switch to sign up"}
                 onClick={() => setIsSignUp(!isSignUp)}
                 className="text-sm text-foreground hover:underline"
               >

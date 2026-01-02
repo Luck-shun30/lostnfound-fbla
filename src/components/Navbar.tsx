@@ -50,10 +50,10 @@ export const Navbar = () => {
   };
 
   return (
-    <nav className="fixed top-0 w-full z-50 liquid-glass-subtle">
+    <nav className="fixed top-0 w-full z-50 bg-white/95 border-b border-black">
       <div className="container mx-auto px-4 py-4">
         <div className="flex items-center justify-between">
-          <Link to="/items" className="flex items-center space-x-2">
+          <Link to="/items" aria-label="Go to items" className="flex items-center space-x-2">
             <div className="w-10 h-10 rounded-lg bg-white/90 border border-black flex items-center justify-center">
               <Search className="w-6 h-6 text-foreground" />
             </div>
@@ -65,6 +65,7 @@ export const Navbar = () => {
               variant="ghost"
               size="sm"
               onClick={() => navigate("/items")}
+              aria-label="Browse items"
               className="hidden md:flex text-muted-foreground hover:text-foreground"
             >
               <Search className="w-4 h-4 mr-2" />
@@ -77,6 +78,7 @@ export const Navbar = () => {
                   variant="default"
                   size="sm"
                   onClick={() => navigate("/submit")}
+                  aria-label="Report found item"
                   className="nb-button"
                 >
                   <Plus className="w-4 h-4 mr-2" />
@@ -88,6 +90,7 @@ export const Navbar = () => {
                     variant="outline"
                     size="sm"
                     onClick={() => navigate("/admin")}
+                    aria-label="Open admin dashboard"
                     className="nb-outline text-foreground"
                   >
                     <LayoutDashboard className="w-4 h-4 mr-2" />
@@ -99,6 +102,7 @@ export const Navbar = () => {
                   variant="ghost" 
                   size="sm" 
                   onClick={handleSignOut}
+                  aria-label="Sign out"
                   className="text-muted-foreground hover:text-foreground"
                 >
                   <LogOut className="w-4 h-4 mr-2" />
@@ -111,6 +115,7 @@ export const Navbar = () => {
                     variant="ghost"
                     size="sm"
                     onClick={() => navigate("/auth")}
+                    aria-label="Sign in"
                     className="text-muted-foreground hover:text-foreground"
                   >
                     <LogIn className="w-4 h-4 mr-2" />
@@ -121,7 +126,8 @@ export const Navbar = () => {
                     variant="default"
                     size="sm"
                     onClick={() => navigate("/auth", { state: { isSignUp: true } })}
-                    className="nb-button text-white"
+                    aria-label="Sign up"
+                    className="nb-button text-black accent-gold-border"
                   >
                     Sign Up
                   </Button>

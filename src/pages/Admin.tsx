@@ -252,7 +252,7 @@ export default function Admin() {
                 />
               </div>
               
-              <Button type="submit" className="w-full nb-button text-white font-semibold">
+              <Button type="submit" aria-label="Unlock admin dashboard" className="w-full nb-button text-black font-semibold">
                 <ShieldCheck className="w-4 h-4 mr-2" />
                 Unlock Dashboard
               </Button>
@@ -348,14 +348,16 @@ export default function Admin() {
                         <div className="flex gap-2 pt-4">
                           <Button
                             size="sm"
+                            aria-label={`Approve item ${item.title}`}
                             onClick={() => handleApproveItem(item.id)}
-                            className="nb-button"
+                            className="nb-button accent-green-border"
                           >
                             <Check className="w-4 h-4 mr-2" />
                             Approve
                           </Button>
                           <Button
                             size="sm"
+                            aria-label={`Reject item ${item.title}`}
                             variant="outline"
                             onClick={() => handleRejectItem(item.id)}
                             className="nb-outline text-foreground"
@@ -365,6 +367,7 @@ export default function Admin() {
                           </Button>
                           <Button
                             size="sm"
+                            aria-label={`Delete item ${item.title}`}
                             variant="ghost"
                             onClick={() => handleDeleteItem(item.id)}
                             className="nb-outline text-foreground"
@@ -428,14 +431,16 @@ export default function Admin() {
                       <div className="flex gap-2 pt-4">
                         <Button
                           size="sm"
+                          aria-label={`Approve claim by ${claim.claimant_name}`}
                           onClick={() => handleApproveClaim(claim.id, claim.item_id)}
-                          className="nb-button"
+                          className="nb-button accent-green-border"
                         >
                           <Check className="w-4 h-4 mr-2" />
                           Approve
                         </Button>
                         <Button
                           size="sm"
+                          aria-label={`Reject claim by ${claim.claimant_name}`}
                           variant="outline"
                           onClick={() => handleRejectClaim(claim.id)}
                           className="nb-outline text-foreground"
