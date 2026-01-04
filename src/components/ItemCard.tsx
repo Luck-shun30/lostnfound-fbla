@@ -44,7 +44,7 @@ export const ItemCard = ({
         <div className="absolute top-3 right-3">
           <Badge
             variant={status === "available" ? "default" : "secondary"}
-            className="nb-card-subtle text-foreground"
+            className={status === "available" ? "bg-accent-green text-white border-0" : "nb-card-subtle text-foreground"}
           >
             {status}
           </Badge>
@@ -74,7 +74,7 @@ export const ItemCard = ({
         </div>
 
         {status === "available" && (
-          <Button aria-label={`Claim item ${title}`} onClick={() => onClaim(id)} className="w-full nb-button accent-green-bg">
+          <Button aria-label={`Claim item ${title}`} onClick={() => onClaim(id)} className="w-full nb-button bg-accent-green text-white hover:bg-accent-green/90 border-black">
             Claim This Item
           </Button>
         )}

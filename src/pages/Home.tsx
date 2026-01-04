@@ -32,11 +32,11 @@ export default function Home() {
 
               <div className="flex items-center gap-3">
                 <Link to="/auth" state={{ isSignUp: true }}>
-                  <Button aria-label="Sign up" variant="default" className="bg-white text-black border-black accent-gold-bg">Sign Up</Button>
+                  <Button aria-label="Sign up" variant="default" className="bg-accent-gold text-black border-black hover:bg-accent-gold/90 font-semibold px-6">Sign Up</Button>
                 </Link>
 
                 <Link to="/auth">
-                  <Button aria-label="Sign in" variant="ghost" className="bg-white text-black border-transparent">Sign In</Button>
+                  <Button aria-label="Sign in" variant="ghost" className="bg-white/90 text-black border border-black hover:bg-white">Sign In</Button>
                 </Link>
               </div>
             </div>
@@ -59,16 +59,16 @@ export default function Home() {
       <main className="container mx-auto px-4 py-12">
         {/* Features section: three concise cards describing core flows */}
         <section className="grid md:grid-cols-3 gap-6">
-          <div className="nb-card p-6 rounded-lg">
-            <h4 className="font-semibold text-foreground mb-2">Report Items</h4>
+          <div className="nb-card p-6 rounded-lg border-l-4 border-l-accent-green">
+            <h4 className="font-semibold text-accent-green mb-2">Report Items</h4>
             <p className="text-muted-foreground">Quickly report found items with photos and details.</p>
           </div>
-          <div className="nb-card p-6 rounded-lg">
-            <h4 className="font-semibold text-foreground mb-2">Search & Browse</h4>
+          <div className="nb-card p-6 rounded-lg border-l-4 border-l-accent-gold">
+            <h4 className="font-semibold text-accent-gold mb-2">Search & Browse</h4>
             <p className="text-muted-foreground">Filter by date, category, or location to find matches.</p>
           </div>
-          <div className="nb-card p-6 rounded-lg">
-            <h4 className="font-semibold text-foreground mb-2">Secure Claims</h4>
+          <div className="nb-card p-6 rounded-lg border-l-4 border-l-accent-green">
+            <h4 className="font-semibold text-accent-green mb-2">Secure Claims</h4>
             <p className="text-muted-foreground">Claims are verified by staff to ensure items reach the rightful owner.</p>
           </div>
         </section>

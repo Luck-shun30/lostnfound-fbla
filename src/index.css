@@ -49,12 +49,15 @@
     --shadow-glow: 0 0 60px hsl(200 90% 60% / 0.15);
     
     --transition-smooth: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-     /* Accent colors for highlights throughout the site (color-blind friendly and high contrast)
+    /* Accent colors for highlights throughout the site (color-blind friendly and high contrast)
        - Green is used for confirmations/success actions (white text on green)
        - Gold is used for primary CTAs (black text on gold for high contrast)
      */
-     --accent-green: 142 55% 30%; /* deep green for good contrast with white */
-     --accent-gold: 42 95% 40%; /* darker gold/mustard to contrast with black text */
+    --accent-green: 145 45% 28%; /* dark forest green for good contrast */
+    --accent-gold: 45 85% 45%; /* rich gold/amber for highlights */
+    
+    /* Accent border color for subtle green tint */
+    --accent-border: 145 35% 25%;
   }
 
   .dark {

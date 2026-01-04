@@ -57,6 +57,14 @@ export default {
           secondary: "hsl(var(--orb-secondary))",
           accent: "hsl(var(--orb-accent))",
         },
+        "accent-green": {
+          DEFAULT: "hsl(var(--accent-green))",
+          foreground: "hsl(0 0% 100%)",
+        },
+        "accent-gold": {
+          DEFAULT: "hsl(var(--accent-gold))",
+          foreground: "hsl(0 0% 0%)",
+        },
       },
       borderRadius: {
         lg: "var(--radius)",

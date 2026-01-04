@@ -50,12 +50,12 @@ export const Navbar = () => {
   };
 
   return (
-    <nav className="fixed top-0 w-full z-50 bg-white/95 border-b border-black">
+    <nav className="fixed top-0 w-full z-50 bg-white/95 border-b-4 border-accent-green">
       <div className="container mx-auto px-4 py-4">
         <div className="flex items-center justify-between">
           <Link to="/items" aria-label="Go to items" className="flex items-center space-x-2">
-            <div className="w-10 h-10 rounded-lg bg-white/90 border border-black flex items-center justify-center">
-              <Search className="w-6 h-6 text-foreground" />
+            <div className="w-10 h-10 rounded-lg bg-accent-green flex items-center justify-center">
+              <Search className="w-6 h-6 text-white" />
             </div>
             <span className="text-xl font-bold text-foreground">Lost & Found</span>
           </Link>
@@ -79,7 +79,7 @@ export const Navbar = () => {
                   size="sm"
                   onClick={() => navigate("/submit")}
                   aria-label="Report found item"
-                  className="nb-button"
+                  className="nb-button bg-accent-gold text-black hover:bg-accent-gold/90 border-black"
                 >
                   <Plus className="w-4 h-4 mr-2" />
                   Report Found Item
@@ -127,7 +127,7 @@ export const Navbar = () => {
                     size="sm"
                     onClick={() => navigate("/auth", { state: { isSignUp: true } })}
                     aria-label="Sign up"
-                    className="nb-button text-black accent-gold-border"
+                    className="nb-button bg-accent-gold text-black hover:bg-accent-gold/90 border-black"
                   >
                     Sign Up
                   </Button>
