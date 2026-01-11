@@ -5,7 +5,7 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 }
 
-const TEACHER_ACCESS_CODE = 'TEACHER2024'
+const TEACHER_ACCESS_CODE = 'TEACHER2026'
 
 Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') {
