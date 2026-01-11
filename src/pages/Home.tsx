@@ -3,7 +3,6 @@
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { GlassCard } from "@/components/GlassCard";
-// OrbBackground removed for neobrutal look (clean background)
 
 export default function Home() {
   return (
