@@ -1,7 +1,1 @@
 project_id = "ofuldlvfnryrdjrsmyjg"
-
-[functions.assign-teacher-role]
-verify_jwt = false
-
-[functions.send-claim-approval]
-verify_jwt = false

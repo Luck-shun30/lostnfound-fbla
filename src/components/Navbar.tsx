@@ -1,6 +1,6 @@
 import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { Search, Plus, LayoutDashboard, LogOut, LogIn, Menu, X } from "lucide-react";
+import { Search, Plus, LayoutDashboard, LogOut, LogIn } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useEffect, useState } from "react";
 import { User } from "@supabase/supabase-js";
@@ -10,7 +10,6 @@ export const Navbar = () => {
   const navigate = useNavigate();
   const [user, setUser] = useState<User | null>(null);
   const [isTeacher, setIsTeacher] = useState(false);
-  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
@@ -47,13 +46,7 @@ export const Navbar = () => {
   const handleSignOut = async () => {
     await supabase.auth.signOut();
     toast.success("Signed out successfully");
-    setMobileMenuOpen(false);
     navigate("/");
-  };
-
-  const handleNavigation = (path: string, state?: any) => {
-    setMobileMenuOpen(false);
-    navigate(path, state ? { state } : undefined);
   };
 
   return (
@@ -67,14 +60,13 @@ export const Navbar = () => {
             <span className="text-xl font-bold text-foreground">Lost & Found</span>
           </Link>
 
-          {/* Desktop Navigation */}
-          <div className="hidden md:flex items-center space-x-4">
+          <div className="flex items-center space-x-4">
             <Button
               variant="ghost"
               size="sm"
               onClick={() => navigate("/items")}
               aria-label="Browse items"
-              className="text-muted-foreground hover:text-foreground"
+              className="hidden md:flex text-muted-foreground hover:text-foreground"
             >
               <Search className="w-4 h-4 mr-2" />
               Browse Items
@@ -87,7 +79,7 @@ export const Navbar = () => {
                   size="sm"
                   onClick={() => navigate("/submit")}
                   aria-label="Report found item"
-                  className="nb-button bg-accent-gold text-white hover:bg-accent-gold/90 border-black"
+                  className="nb-button bg-accent-gold text-black hover:bg-accent-gold/90 border-black"
                 >
                   <Plus className="w-4 h-4 mr-2" />
                   Report Found Item
@@ -117,106 +109,14 @@ export const Navbar = () => {
                   Sign Out
                 </Button>
               </>
-            ) : (
-              <div className="flex items-center gap-2">
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => navigate("/auth")}
-                  aria-label="Sign in"
-                  className="text-muted-foreground hover:text-foreground"
-                >
-                  <LogIn className="w-4 h-4 mr-2" />
-                  Sign In
-                </Button>
-
-                <Button
-                  variant="default"
-                  size="sm"
-                  onClick={() => navigate("/auth", { state: { isSignUp: true } })}
-                  aria-label="Sign up"
-                  className="nb-button bg-accent-gold text-white hover:bg-accent-gold/90 border-black"
-                >
-                  Sign Up
-                </Button>
-              </div>
-            )}
-          </div>
-
-          {/* Mobile Hamburger Button */}
-          <button
-            className="md:hidden p-2 rounded-lg hover:bg-muted transition-colors"
-            onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-            aria-label={mobileMenuOpen ? "Close menu" : "Open menu"}
-          >
-            {mobileMenuOpen ? (
-              <X className="w-6 h-6 text-foreground" />
-            ) : (
-              <Menu className="w-6 h-6 text-foreground" />
-            )}
-          </button>
-        </div>
-
-        {/* Mobile Menu */}
-        {mobileMenuOpen && (
-          <div className="md:hidden mt-4 pb-4 border-t border-border pt-4 animate-fade-in">
-            <div className="flex flex-col space-y-3">
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => handleNavigation("/items")}
-                aria-label="Browse items"
-                className="justify-start text-muted-foreground hover:text-foreground"
-              >
-                <Search className="w-4 h-4 mr-2" />
-                Browse Items
-              </Button>
-
-              {user ? (
-                <>
-                  <Button
-                    variant="default"
-                    size="sm"
-                    onClick={() => handleNavigation("/submit")}
-                    aria-label="Report found item"
-                    className="justify-start nb-button bg-accent-gold text-white hover:bg-accent-gold/90 border-black"
-                  >
-                    <Plus className="w-4 h-4 mr-2" />
-                    Report Found Item
-                  </Button>
-
-                  {isTeacher && (
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => handleNavigation("/admin")}
-                      aria-label="Open admin dashboard"
-                      className="justify-start nb-outline text-foreground"
-                    >
-                      <LayoutDashboard className="w-4 h-4 mr-2" />
-                      Admin
-                    </Button>
-                  )}
-
-                  <Button 
-                    variant="ghost" 
-                    size="sm" 
-                    onClick={handleSignOut}
-                    aria-label="Sign out"
-                    className="justify-start text-muted-foreground hover:text-foreground"
-                  >
-                    <LogOut className="w-4 h-4 mr-2" />
-                    Sign Out
-                  </Button>
-                </>
               ) : (
-                <>
+                <div className="flex items-center gap-2">
                   <Button
                     variant="ghost"
                     size="sm"
-                    onClick={() => handleNavigation("/auth")}
+                    onClick={() => navigate("/auth")}
                     aria-label="Sign in"
-                    className="justify-start text-muted-foreground hover:text-foreground"
+                    className="text-muted-foreground hover:text-foreground"
                   >
                     <LogIn className="w-4 h-4 mr-2" />
                     Sign In
@@ -225,17 +125,16 @@ export const Navbar = () => {
                   <Button
                     variant="default"
                     size="sm"
-                    onClick={() => handleNavigation("/auth", { isSignUp: true })}
+                    onClick={() => navigate("/auth", { state: { isSignUp: true } })}
                     aria-label="Sign up"
-                    className="justify-start nb-button bg-accent-gold text-white hover:bg-accent-gold/90 border-black"
+                    className="nb-button bg-accent-gold text-black hover:bg-accent-gold/90 border-black"
                   >
                     Sign Up
                   </Button>
-                </>
+                </div>
               )}
-            </div>
           </div>
-        )}
+        </div>
       </div>
     </nav>
   );
