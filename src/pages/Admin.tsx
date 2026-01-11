@@ -167,13 +167,38 @@ export default function Admin() {
     }
   };
 
-  const handleApproveClaim = async (claimId: string, itemId: string) => {
+  const handleApproveClaim = async (claim: Claim) => {
     try {
+      // Get item details for the email
+      const { data: itemData } = await supabase
+        .from("found_items")
+        .select("title, location_found")
+        .eq("id", claim.item_id)
+        .single();
+
+      // Send approval email to claimant
+      if (itemData) {
+        try {
+          await supabase.functions.invoke("send-claim-approval", {
+            body: {
+              claimantName: claim.claimant_name,
+              claimantEmail: claim.claimant_email,
+              itemTitle: itemData.title,
+              itemLocation: itemData.location_found,
+            },
+          });
+          console.log("Approval email sent successfully");
+        } catch (emailError) {
+          console.error("Failed to send email:", emailError);
+          // Continue with approval even if email fails
+        }
+      }
+
       // Delete the claim first
       const { error: claimError } = await supabase
         .from("claims")
         .delete()
-        .eq("id", claimId);
+        .eq("id", claim.id);
 
       if (claimError) throw claimError;
 
@@ -181,11 +206,11 @@ export default function Admin() {
       const { error: itemError } = await supabase
         .from("found_items")
         .delete()
-        .eq("id", itemId);
+        .eq("id", claim.item_id);
 
       if (itemError) throw itemError;
 
-      toast.success("Claim approved - item returned to owner");
+      toast.success("Claim approved - email sent to owner");
       fetchData();
     } catch (error) {
       toast.error("Failed to approve claim");
@@ -432,7 +457,7 @@ export default function Admin() {
                         <Button
                           size="sm"
                           aria-label={`Approve claim by ${claim.claimant_name}`}
-                          onClick={() => handleApproveClaim(claim.id, claim.item_id)}
+                          onClick={() => handleApproveClaim(claim)}
                           className="nb-button accent-green-border"
                         >
                           <Check className="w-4 h-4 mr-2" />
