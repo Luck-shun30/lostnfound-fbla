@@ -1,6 +1,6 @@
 import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { Search, Plus, LayoutDashboard, LogOut, LogIn } from "lucide-react";
+import { Search, Plus, LayoutDashboard, LogOut, LogIn, Menu, X } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useEffect, useState } from "react";
 import { User } from "@supabase/supabase-js";
@@ -10,6 +10,7 @@ export const Navbar = () => {
   const navigate = useNavigate();
   const [user, setUser] = useState<User | null>(null);
   const [isTeacher, setIsTeacher] = useState(false);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
@@ -47,6 +48,12 @@ export const Navbar = () => {
     await supabase.auth.signOut();
     toast.success("Signed out successfully");
     navigate("/");
+    setMobileMenuOpen(false);
+  };
+
+  const handleNavigate = (path: string, state?: object) => {
+    navigate(path, state ? { state } : undefined);
+    setMobileMenuOpen(false);
   };
 
   return (
@@ -60,13 +67,14 @@ export const Navbar = () => {
             <span className="text-xl font-bold text-foreground">Lost & Found</span>
           </Link>
 
-          <div className="flex items-center space-x-4">
+          {/* Desktop navigation */}
+          <div className="hidden md:flex items-center space-x-4">
             <Button
               variant="ghost"
               size="sm"
               onClick={() => navigate("/items")}
               aria-label="Browse items"
-              className="hidden md:flex text-muted-foreground hover:text-foreground"
+              className="text-muted-foreground hover:text-foreground"
             >
               <Search className="w-4 h-4 mr-2" />
               Browse Items
@@ -109,32 +117,121 @@ export const Navbar = () => {
                   Sign Out
                 </Button>
               </>
-              ) : (
-                <div className="flex items-center gap-2">
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => navigate("/auth")}
-                    aria-label="Sign in"
-                    className="text-muted-foreground hover:text-foreground"
-                  >
-                    <LogIn className="w-4 h-4 mr-2" />
-                    Sign In
-                  </Button>
+            ) : (
+              <div className="flex items-center gap-2">
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => navigate("/auth")}
+                  aria-label="Sign in"
+                  className="text-muted-foreground hover:text-foreground"
+                >
+                  <LogIn className="w-4 h-4 mr-2" />
+                  Sign In
+                </Button>
 
-                  <Button
-                    variant="default"
-                    size="sm"
-                    onClick={() => navigate("/auth", { state: { isSignUp: true } })}
-                    aria-label="Sign up"
-                    className="nb-button bg-accent-gold text-black hover:bg-accent-gold/90 border-black"
-                  >
-                    Sign Up
-                  </Button>
-                </div>
-              )}
+                <Button
+                  variant="default"
+                  size="sm"
+                  onClick={() => navigate("/auth", { state: { isSignUp: true } })}
+                  aria-label="Sign up"
+                  className="nb-button bg-accent-gold text-black hover:bg-accent-gold/90 border-black"
+                >
+                  Sign Up
+                </Button>
+              </div>
+            )}
           </div>
+
+          {/* Mobile hamburger button */}
+          <Button
+            variant="ghost"
+            size="sm"
+            className="md:hidden"
+            onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+            aria-label={mobileMenuOpen ? "Close menu" : "Open menu"}
+          >
+            {mobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
+          </Button>
         </div>
+
+        {/* Mobile menu */}
+        {mobileMenuOpen && (
+          <div className="md:hidden mt-4 pb-4 border-t border-border pt-4 space-y-3">
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => handleNavigate("/items")}
+              aria-label="Browse items"
+              className="w-full justify-start text-muted-foreground hover:text-foreground"
+            >
+              <Search className="w-4 h-4 mr-2" />
+              Browse Items
+            </Button>
+
+            {user ? (
+              <>
+                <Button
+                  variant="default"
+                  size="sm"
+                  onClick={() => handleNavigate("/submit")}
+                  aria-label="Report found item"
+                  className="w-full justify-start nb-button bg-accent-gold text-black hover:bg-accent-gold/90 border-black"
+                >
+                  <Plus className="w-4 h-4 mr-2" />
+                  Report Found Item
+                </Button>
+
+                {isTeacher && (
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => handleNavigate("/admin")}
+                    aria-label="Open admin dashboard"
+                    className="w-full justify-start nb-outline text-foreground"
+                  >
+                    <LayoutDashboard className="w-4 h-4 mr-2" />
+                    Admin
+                  </Button>
+                )}
+
+                <Button 
+                  variant="ghost" 
+                  size="sm" 
+                  onClick={handleSignOut}
+                  aria-label="Sign out"
+                  className="w-full justify-start text-muted-foreground hover:text-foreground"
+                >
+                  <LogOut className="w-4 h-4 mr-2" />
+                  Sign Out
+                </Button>
+              </>
+            ) : (
+              <>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => handleNavigate("/auth")}
+                  aria-label="Sign in"
+                  className="w-full justify-start text-muted-foreground hover:text-foreground"
+                >
+                  <LogIn className="w-4 h-4 mr-2" />
+                  Sign In
+                </Button>
+
+                <Button
+                  variant="default"
+                  size="sm"
+                  onClick={() => handleNavigate("/auth", { isSignUp: true })}
+                  aria-label="Sign up"
+                  className="w-full justify-start nb-button bg-accent-gold text-black hover:bg-accent-gold/90 border-black"
+                >
+                  Sign Up
+                </Button>
+              </>
+            )}
+          </div>
+        )}
       </div>
     </nav>
   );
