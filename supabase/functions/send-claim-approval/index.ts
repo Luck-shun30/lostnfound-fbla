@@ -1,7 +1,12 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { Resend } from "https://esm.sh/resend@2.0.0";
 
-const resend = new Resend(Deno.env.get("RESEND_API_KEY"));
+// Initialize Resend with API key from environment variables
+const apiKey = Deno.env.get("RESEND_API_KEY");
+if (!apiKey) {
+  throw new Error("RESEND_API_KEY environment variable is not set");
+}
+const resend = new Resend(apiKey);
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -23,23 +28,11 @@ const handler = async (req: Request): Promise<Response> => {
   }
 
   try {
-    // Check if API key is configured
-    const apiKey = Deno.env.get("RESEND_API_KEY");
-    if (!apiKey) {
-      console.error("RESEND_API_KEY environment variable is not set");
-      return new Response(
-        JSON.stringify({ error: "Email service not configured. Please set RESEND_API_KEY in Supabase." }),
-        {
-          status: 500,
-          headers: { "Content-Type": "application/json", ...corsHeaders },
-        }
-      );
-    }
-
     const { claimantName, claimantEmail, itemTitle, itemLocation }: ClaimApprovalRequest = await req.json();
 
     console.log("Sending claim approval email to:", claimantEmail);
 
+    // Send email using Resend API
     const emailResponse = await resend.emails.send({
       from: "Lost & Found <onboarding@resend.dev>",
       to: [claimantEmail],
