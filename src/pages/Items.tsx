@@ -60,7 +60,14 @@ export default function Items() {
         .order("created_at", { ascending: false });
 
       if (error) throw error;
-      setItems(data || []);
+      
+      // Map items to include status as 'available'
+      const itemsWithStatus = (data || []).map(item => ({
+        ...item,
+        status: 'available'
+      }));
+      
+      setItems(itemsWithStatus);
     } catch (error) {
       toast.error("Failed to load items");
     } finally {
