@@ -284,12 +284,15 @@ export default function Admin() {
         <h1 className="text-4xl font-bold mb-8 text-foreground animate-fade-in">Admin Dashboard</h1>
 
         <Tabs defaultValue="items" className="space-y-6">
-          <TabsList className="liquid-glass-subtle grid w-full max-w-md grid-cols-2">
+          <TabsList className="liquid-glass-subtle grid w-full max-w-lg grid-cols-3">
             <TabsTrigger value="items">
               Pending Items ({items.filter((i) => !i.approved).length})
             </TabsTrigger>
             <TabsTrigger value="claims">
               Pending Claims ({claims.filter((c) => c.status === "pending").length})
+            </TabsTrigger>
+            <TabsTrigger value="approved">
+              Approved ({items.filter((i) => i.approved).length})
             </TabsTrigger>
           </TabsList>
 
@@ -448,6 +451,75 @@ export default function Admin() {
                           <X className="w-4 h-4 mr-2" />
                           Reject
                         </Button>
+                      </div>
+                    </div>
+                  </GlassCard>
+                ))
+            )}
+          </TabsContent>
+
+          <TabsContent value="approved" className="space-y-4">
+            {items.filter((item) => item.approved).length === 0 ? (
+              <GlassCard className="p-8 text-center">
+                <p className="text-muted-foreground">No approved listings</p>
+              </GlassCard>
+            ) : (
+              items
+                .filter((item) => item.approved)
+                .map((item) => (
+                  <GlassCard key={item.id} className="p-6 animate-fade-in">
+                    <div className="flex flex-col md:flex-row gap-6">
+                      {item.photo_url && (
+                        <div className="w-full md:w-48 h-48 rounded-lg overflow-hidden flex-shrink-0">
+                          <img
+                            src={item.photo_url}
+                            alt={item.title}
+                            className="w-full h-full object-cover"
+                          />
+                        </div>
+                      )}
+
+                      <div className="flex-1 space-y-3">
+                        <div className="flex items-start justify-between">
+                          <div>
+                            <h3 className="text-xl font-semibold text-foreground">
+                              {item.title}
+                            </h3>
+                            <p className="text-sm text-muted-foreground">
+                              Approved • Found on{" "}
+                              {format(new Date(item.date_found), "MMM d, yyyy")}
+                            </p>
+                          </div>
+                          <Badge className="bg-accent-green/20 text-accent-green border-accent-green">{item.category}</Badge>
+                        </div>
+
+                        <p className="text-sm text-muted-foreground">
+                          {item.description}
+                        </p>
+
+                        <div className="text-sm space-y-1">
+                          <p>
+                            <strong className="text-foreground">Location:</strong>{" "}
+                            <span className="text-muted-foreground">{item.location_found}</span>
+                          </p>
+                          <p>
+                            <strong className="text-foreground">Status:</strong>{" "}
+                            <span className="text-muted-foreground capitalize">{item.status}</span>
+                          </p>
+                        </div>
+
+                        <div className="flex gap-2 pt-4">
+                          <Button
+                            size="sm"
+                            aria-label={`Remove approved item ${item.title}`}
+                            variant="outline"
+                            onClick={() => handleDeleteItem(item.id)}
+                            className="nb-outline text-foreground hover:bg-destructive/10 hover:border-destructive"
+                          >
+                            <Trash2 className="w-4 h-4 mr-2" />
+                            Remove Listing
+                          </Button>
+                        </div>
                       </div>
                     </div>
                   </GlassCard>
