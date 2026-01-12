@@ -1,7 +1,7 @@
 import { GlassCard } from "./GlassCard";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Calendar, MapPin } from "lucide-react";
+import { Calendar, MapPin, HelpCircle } from "lucide-react";
 import { format } from "date-fns";
 
 interface ItemCardProps {
@@ -14,6 +14,7 @@ interface ItemCardProps {
   photoUrl?: string;
   status: string;
   onClaim: (id: string) => void;
+  onRequestInfo: (id: string) => void;
 }
 
 export const ItemCard = ({
@@ -25,6 +26,7 @@ export const ItemCard = ({
   photoUrl,
   status,
   onClaim,
+  onRequestInfo,
   id,
 }: ItemCardProps) => {
   return (
@@ -74,9 +76,23 @@ export const ItemCard = ({
         </div>
 
         {status === "available" && (
-          <Button aria-label={`Claim item ${title}`} onClick={() => onClaim(id)} className="w-full nb-button bg-accent-green text-white hover:bg-accent-green/90 border-black">
-            Claim This Item
-          </Button>
+          <div className="flex gap-2">
+            <Button 
+              aria-label={`Claim item ${title}`} 
+              onClick={() => onClaim(id)} 
+              className="flex-1 nb-button bg-accent-green text-white hover:bg-accent-green/90 border-black"
+            >
+              Claim Item
+            </Button>
+            <Button 
+              aria-label={`Request info about ${title}`} 
+              onClick={() => onRequestInfo(id)} 
+              variant="outline"
+              className="nb-outline text-foreground"
+            >
+              <HelpCircle className="w-4 h-4" />
+            </Button>
+          </div>
         )}
       </div>
     </GlassCard>
