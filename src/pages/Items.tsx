@@ -151,6 +151,7 @@ export default function Items() {
                 photoUrl={item.photo_url || undefined}
                 status={item.status}
                 onClaim={() => navigate(`/claim/${item.id}`)}
+                onRequestInfo={() => navigate(`/claim/${item.id}?mode=info`)}
               />
             ))}
           </div>

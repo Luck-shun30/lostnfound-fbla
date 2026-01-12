@@ -103,6 +103,56 @@ export type Database = {
         }
         Relationships: []
       }
+      info_requests: {
+        Row: {
+          admin_response: string | null
+          created_at: string
+          id: string
+          item_id: string
+          question: string
+          requester_email: string
+          requester_name: string
+          requester_phone: string | null
+          responded_at: string | null
+          status: string
+          user_id: string | null
+        }
+        Insert: {
+          admin_response?: string | null
+          created_at?: string
+          id?: string
+          item_id: string
+          question: string
+          requester_email: string
+          requester_name: string
+          requester_phone?: string | null
+          responded_at?: string | null
+          status?: string
+          user_id?: string | null
+        }
+        Update: {
+          admin_response?: string | null
+          created_at?: string
+          id?: string
+          item_id?: string
+          question?: string
+          requester_email?: string
+          requester_name?: string
+          requester_phone?: string | null
+          responded_at?: string | null
+          status?: string
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "info_requests_item_id_fkey"
+            columns: ["item_id"]
+            isOneToOne: false
+            referencedRelation: "found_items"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       profiles: {
         Row: {
           created_at: string | null
