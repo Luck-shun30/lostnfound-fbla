@@ -86,6 +86,16 @@ export default function Auth() {
       }
 
       if (isSignUp) {
+        // Validate teacher access code if signing up as teacher
+        if (accountType === "teacher") {
+          const TEACHER_ACCESS_CODE = "TEACHER2026";
+          if (teacherCode !== TEACHER_ACCESS_CODE) {
+            toast.error("Invalid teacher access code");
+            setLoading(false);
+            return;
+          }
+        }
+
         const { data, error } = await supabase.auth.signUp({
           email,
           password,
@@ -107,22 +117,22 @@ export default function Auth() {
           return;
         }
 
-        // If teacher account, call edge function to assign teacher role
+        // If teacher account, assign teacher role in user_roles table
         if (data.user && accountType === "teacher") {
-          const { data: session } = await supabase.auth.getSession();
-          
-          if (session?.session) {
-            const response = await supabase.functions.invoke("assign-teacher-role", {
-              body: { accessCode: teacherCode },
+          const { error: roleError } = await supabase
+            .from("user_roles")
+            .insert({
+              user_id: data.user.id,
+              role: "teacher",
             });
 
-            if (response.error || response.data?.error) {
-              toast.error(response.data?.error || "Failed to assign teacher role. Please check your access code.");
-              // Sign out the user since teacher role failed
-              await supabase.auth.signOut();
-              setLoading(false);
-              return;
-            }
+          if (roleError) {
+            console.error("Failed to assign teacher role:", roleError);
+            toast.error("Failed to assign teacher role. Please contact administration.");
+            // Sign out the user since teacher role failed
+            await supabase.auth.signOut();
+            setLoading(false);
+            return;
           }
         }
 
