@@ -14,6 +14,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "
 import { Check, X, Trash2, Lock, ShieldCheck, Pencil, MessageSquare, Send } from "lucide-react";
 import { toast } from "sonner";
 import { format } from "date-fns";
+import { sendClaimApprovalEmail, sendInfoResponseEmail } from "@/lib/email";
 
 const ADMIN_PASSWORD = "test";
 
@@ -244,19 +245,31 @@ export default function Admin() {
 
   const handleApproveClaim = async (claim: Claim) => {
     try {
-      // Send email notification to claimant
-      const { error: emailError } = await supabase.functions.invoke("send-claim-approved-email", {
-        body: {
-          claimantName: claim.claimant_name,
-          claimantEmail: claim.claimant_email,
-          itemTitle: claim.found_items?.title || "Unknown Item",
-          itemLocation: claim.found_items?.location_found || "Contact the office",
-        },
-      });
+      // Fetch full item details
+      const { data: itemData } = await supabase
+        .from("found_items")
+        .select("*")
+        .eq("id", claim.item_id)
+        .single();
 
-      if (emailError) {
-        console.error("Failed to send email:", emailError);
-        // Continue with approval even if email fails
+      if (!itemData) {
+        toast.error("Item not found");
+        return;
+      }
+
+      // Queue email notification to claimant
+      const emailResult = await sendClaimApprovalEmail(
+        claim.claimant_name,
+        claim.claimant_email,
+        itemData.title,
+        itemData.description,
+        itemData.location_found,
+        format(new Date(itemData.date_found), "MMMM d, yyyy"),
+        "Please visit the Lost & Found office during school hours to pick up your item. Bring this email as proof."
+      );
+
+      if (!emailResult.success) {
+        console.warn("Email notification failed to queue, but proceeding with approval");
       }
 
       // Delete the claim
@@ -275,9 +288,10 @@ export default function Admin() {
 
       if (itemError) throw itemError;
 
-      toast.success("Claim approved - email sent to claimant");
+      toast.success("Claim approved - email queued for sending");
       fetchData();
     } catch (error) {
+      console.error("Error approving claim:", error);
       toast.error("Failed to approve claim");
     }
   };
@@ -307,20 +321,18 @@ export default function Admin() {
 
     setSendingResponse(true);
     try {
-      // Send email with the response
-      const { error: emailError } = await supabase.functions.invoke("send-info-response-email", {
-        body: {
-          requesterName: respondingTo.requester_name,
-          requesterEmail: respondingTo.requester_email,
-          itemTitle: respondingTo.found_items?.title || "Unknown Item",
-          originalQuestion: respondingTo.question,
-          adminResponse: responseText,
-        },
-      });
+      // Queue email with the response
+      const emailResult = await sendInfoResponseEmail(
+        respondingTo.requester_name,
+        respondingTo.requester_email,
+        respondingTo.found_items?.title || "Unknown Item",
+        respondingTo.question,
+        responseText
+      );
 
-      if (emailError) {
-        console.error("Failed to send email:", emailError);
-        throw emailError;
+      if (!emailResult.success) {
+        console.error("Failed to queue response email:", emailResult.error);
+        throw new Error("Failed to queue email");
       }
 
       // Update the info request status
@@ -335,11 +347,12 @@ export default function Admin() {
 
       if (updateError) throw updateError;
 
-      toast.success("Response sent via email");
+      toast.success("Response queued for sending via email");
       setRespondingTo(null);
       setResponseText("");
       fetchData();
     } catch (error) {
+      console.error("Error sending response:", error);
       toast.error("Failed to send response");
     } finally {
       setSendingResponse(false);
