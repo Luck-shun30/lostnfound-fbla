@@ -1,4 +1,4 @@
-// Email utility for queuing emails to be sent via external service (n8n, Zapier, etc.)
+// Email utility for queuing emails to be sent via external service
 import { supabase } from "@/integrations/supabase/client";
 
 interface EmailQueuePayload {
