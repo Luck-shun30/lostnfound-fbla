@@ -35,6 +35,7 @@ export const Footer = () => {
               <li><a href="https://github.com/facebook/react/blob/main/LICENSE" className="hover:underline hover:text-accent-gold">React Licensing</a></li>
               <li><a href="https://github.com/supabase/supabase/blob/master/LICENSE" className="hover:underline hover:text-accent-gold">Supabase Licensing</a></li>
               <li><a href="https://docs.npmjs.com/policies/npm-license" className="hover:underline hover:text-accent-gold">NPM Licensing</a></li>
+              <li><a href="https://github.com/nodejs/node/blob/main/LICENSE" className="hover:underline hover:text-accent-gold">Node.js Licensing</a></li>
             </ul>
           </div>
         </div>
