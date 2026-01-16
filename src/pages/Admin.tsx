@@ -14,7 +14,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "
 import { Check, X, Trash2, Lock, ShieldCheck, Pencil, MessageSquare, Send } from "lucide-react";
 import { toast } from "sonner";
 import { format } from "date-fns";
-
+import { sendClaimApprovalEmail, sendInfoResponseEmail } from "@/lib/email";
 
 const ADMIN_PASSWORD = "test";
 
@@ -257,18 +257,19 @@ export default function Admin() {
         return;
       }
 
-      // Send email notification via edge function
-      const { error: emailError } = await supabase.functions.invoke("send-claim-approved-email", {
-        body: {
-          claimantName: claim.claimant_name,
-          claimantEmail: claim.claimant_email,
-          itemTitle: itemData.title,
-          itemLocation: itemData.location_found,
-        },
-      });
+      // Queue email notification to claimant
+      const emailResult = await sendClaimApprovalEmail(
+        claim.claimant_name,
+        claim.claimant_email,
+        itemData.title,
+        itemData.description,
+        itemData.location_found,
+        format(new Date(itemData.date_found), "MMMM d, yyyy"),
+        "Please visit the Lost & Found office during school hours to pick up your item. Bring this email as proof."
+      );
 
-      if (emailError) {
-        console.warn("Email notification failed, but proceeding with approval:", emailError);
+      if (!emailResult.success) {
+        console.warn("Email notification failed to queue, but proceeding with approval");
       }
 
       // Delete the claim
@@ -287,7 +288,7 @@ export default function Admin() {
 
       if (itemError) throw itemError;
 
-      toast.success("Claim approved - email sent to claimant");
+      toast.success("Claim approved - email queued for sending");
       fetchData();
     } catch (error) {
       console.error("Error approving claim:", error);
@@ -320,20 +321,18 @@ export default function Admin() {
 
     setSendingResponse(true);
     try {
-      // Send email via edge function
-      const { error: emailError } = await supabase.functions.invoke("send-info-response-email", {
-        body: {
-          requesterName: respondingTo.requester_name,
-          requesterEmail: respondingTo.requester_email,
-          itemTitle: respondingTo.found_items?.title || "Unknown Item",
-          originalQuestion: respondingTo.question,
-          adminResponse: responseText,
-        },
-      });
+      // Queue email with the response
+      const emailResult = await sendInfoResponseEmail(
+        respondingTo.requester_name,
+        respondingTo.requester_email,
+        respondingTo.found_items?.title || "Unknown Item",
+        respondingTo.question,
+        responseText
+      );
 
-      if (emailError) {
-        console.error("Failed to send response email:", emailError);
-        throw new Error("Failed to send email");
+      if (!emailResult.success) {
+        console.error("Failed to queue response email:", emailResult.error);
+        throw new Error("Failed to queue email");
       }
 
       // Update the info request status
@@ -348,7 +347,7 @@ export default function Admin() {
 
       if (updateError) throw updateError;
 
-      toast.success("Response sent via email");
+      toast.success("Response queued for sending via email");
       setRespondingTo(null);
       setResponseText("");
       fetchData();

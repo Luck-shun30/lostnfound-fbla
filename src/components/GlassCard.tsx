@@ -1,26 +1,28 @@
-import * as React from "react";
 import { cn } from "@/lib/utils";
+import { ReactNode } from "react";
 
-interface GlassCardProps extends React.HTMLAttributes<HTMLDivElement> {
+interface GlassCardProps {
+  children: ReactNode;
+  className?: string;
   hover?: boolean;
   subtle?: boolean;
+  style?: React.CSSProperties;
 }
 
-export const GlassCard = React.forwardRef<HTMLDivElement, GlassCardProps>(
-  ({ className, hover = false, subtle = false, ...props }, ref) => {
-    return (
-      <div
-        ref={ref}
-        className={cn(
-          subtle ? "nb-card-subtle" : "nb-card",
-          "rounded-lg",
-          hover && "transition-all duration-300 hover:translate-y-[-2px] hover:shadow-lg",
-          className
-        )}
-        {...props}
-      />
-    );
-  }
-);
-
-GlassCard.displayName = "GlassCard";
+export const GlassCard = ({ children, className, hover = false, subtle = false, style }: GlassCardProps) => {
+  return (
+    <div
+      style={style}
+      className={cn(
+        // Use neobrutal card styles site-wide (nb-card / nb-card-subtle)
+        subtle ? "nb-card-subtle" : "nb-card",
+        // maintain optional transition/hover classes passed by callers
+        "transition-all duration-150",
+        hover && "hover:scale-[1.02]",
+        className
+      )}
+    >
+      {children}
+    </div>
+  );
+};
