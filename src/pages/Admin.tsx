@@ -2,7 +2,7 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
-import { Navbar } from "@/components/Navbar";
+import Navbar from "@/components/Navbar";
 import { GlassCard } from "@/components/GlassCard";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -95,7 +95,7 @@ export default function Admin() {
     const {
       data: { session },
     } = await supabase.auth.getSession();
-    
+
     if (!session) {
       toast.error("Please sign in");
       navigate("/");
@@ -108,7 +108,7 @@ export default function Admin() {
       .eq("user_id", session.user.id);
 
     const hasAccess = roles?.some(r => r.role === "teacher" || r.role === "admin");
-    
+
     if (!hasAccess) {
       toast.error("Access denied. Teacher account required.");
       navigate("/items");
@@ -387,7 +387,7 @@ export default function Admin() {
               <h1 className="text-2xl font-bold text-foreground">Admin Access</h1>
               <p className="text-muted-foreground mt-2">Enter the admin password to continue</p>
             </div>
-            
+
             <form onSubmit={handlePasswordSubmit} className="space-y-4">
               <div className="space-y-2">
                 <Label htmlFor="adminPassword">Password</Label>
@@ -401,7 +401,7 @@ export default function Admin() {
                   className="bg-secondary/50 border-border/50 focus:border-foreground"
                 />
               </div>
-              
+
               <Button type="submit" aria-label="Unlock admin dashboard" className="w-full nb-button text-black font-semibold">
                 <ShieldCheck className="w-4 h-4 mr-2" />
                 Unlock Dashboard
@@ -704,8 +704,8 @@ export default function Admin() {
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setRespondingTo(null)}>Cancel</Button>
-            <Button 
-              onClick={handleSendResponse} 
+            <Button
+              onClick={handleSendResponse}
               disabled={!responseText.trim() || sendingResponse}
               className="nb-button accent-gold-bg"
             >

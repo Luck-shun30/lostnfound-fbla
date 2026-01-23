@@ -1,31 +1,40 @@
-import { Link, useNavigate } from "react-router-dom";
-import { Button } from "@/components/ui/button";
-import { Search, Plus, LayoutDashboard, LogOut, LogIn, Menu, X } from "lucide-react";
+import { useState, useEffect } from "react";
+import { Menu, X, LogOut } from "lucide-react";
+import { Link, useNavigate, useLocation } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
-import { useEffect, useState } from "react";
-import { User } from "@supabase/supabase-js";
+import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 
-export const Navbar = () => {
-  const navigate = useNavigate();
-  const [user, setUser] = useState<User | null>(null);
+const Navbar = () => {
+  const [isScrolled, setIsScrolled] = useState(false);
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [user, setUser] = useState<any>(null);
   const [isTeacher, setIsTeacher] = useState(false);
-  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const navigate = useNavigate();
+  const location = useLocation();
 
   useEffect(() => {
+    const handleScroll = () => {
+      setIsScrolled(window.scrollY > 20);
+    };
+    window.addEventListener("scroll", handleScroll);
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
+
+  useEffect(() => {
+    // Check active session
     supabase.auth.getSession().then(({ data: { session } }) => {
       setUser(session?.user ?? null);
       if (session?.user) {
-        checkTeacherStatus(session.user.id);
+        checkUserRole(session.user.id);
       }
     });
 
-    const {
-      data: { subscription },
-    } = supabase.auth.onAuthStateChange((_event, session) => {
+    // Listen for auth changes
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
       setUser(session?.user ?? null);
       if (session?.user) {
-        checkTeacherStatus(session.user.id);
+        checkUserRole(session.user.id);
       } else {
         setIsTeacher(false);
       }
@@ -34,205 +43,192 @@ export const Navbar = () => {
     return () => subscription.unsubscribe();
   }, []);
 
-  const checkTeacherStatus = async (userId: string) => {
-    const { data } = await supabase
+  const checkUserRole = async (userId: string) => {
+    const { data: roles } = await supabase
       .from("user_roles")
       .select("role")
       .eq("user_id", userId);
-    
-    const hasAccess = data?.some(r => r.role === "teacher" || r.role === "admin");
-    setIsTeacher(!!hasAccess);
+
+    if (roles && roles.some(r => r.role === "teacher" || r.role === "admin")) {
+      setIsTeacher(true);
+    }
   };
 
   const handleSignOut = async () => {
     await supabase.auth.signOut();
     toast.success("Signed out successfully");
     navigate("/");
-    setMobileMenuOpen(false);
   };
 
-  const handleNavigate = (path: string, state?: object) => {
-    navigate(path, state ? { state } : undefined);
-    setMobileMenuOpen(false);
+  const scrollToSection = (e: React.MouseEvent<HTMLAnchorElement>, href: string) => {
+    e.preventDefault();
+    if (location.pathname !== "/") {
+      navigate("/");
+      setTimeout(() => {
+        const element = document.querySelector(href);
+        if (element) element.scrollIntoView({ behavior: "smooth" });
+      }, 100);
+    } else {
+      const element = document.querySelector(href);
+      if (element) {
+        element.scrollIntoView({ behavior: "smooth" });
+      }
+    }
+    setIsMobileMenuOpen(false);
   };
+
+  const navLinks = [
+    { name: "About", href: "#about" },
+    { name: "How it Works", href: "#how-it-works" },
+    { name: "Contact", href: "#contact" },
+  ];
 
   return (
-    <nav className="fixed top-0 w-full z-50 bg-white/95 border-b-4 border-accent-green">
-      <div className="container mx-auto px-4 py-4">
-        <div className="flex items-center justify-between">
-          <Link to="/items" aria-label="Go to items" className="flex items-center space-x-2">
-            <div className="w-10 h-10 rounded-lg bg-accent-green flex items-center justify-center">
-              <Search className="w-6 h-6 text-white" />
-            </div>
-            <span className="text-xl font-bold text-foreground">Lost & Found</span>
-          </Link>
+    <nav
+      className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${isScrolled ? "py-4 bg-white/50 backdrop-blur-md shadow-sm" : "py-6 bg-transparent"
+        }`}
+    >
+      <div className="container mx-auto px-6 flex items-center justify-between">
+        <Link
+          to="/"
+          className="text-2xl font-bold tracking-tighter"
+          onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
+        >
+          Lost<span className="text-gray-400">*</span>Found
+        </Link>
 
-          {/* Desktop navigation */}
-          <div className="hidden md:flex items-center space-x-4">
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => navigate("/items")}
-              aria-label="Browse items"
-              className="text-muted-foreground hover:text-foreground"
-            >
-              <Search className="w-4 h-4 mr-2" />
-              Browse Items
-            </Button>
-
-            {user ? (
-              <>
-                <Button
-                  variant="default"
-                  size="sm"
-                  onClick={() => navigate("/submit")}
-                  aria-label="Report found item"
-                  className="nb-button bg-accent-gold text-black hover:bg-accent-gold/90 border-black"
+        {/* Desktop Links */}
+        <div className="hidden md:flex items-center space-x-8">
+          {!user ? (
+            <>
+              {navLinks.map((link) => (
+                <a
+                  key={link.name}
+                  href={link.href}
+                  onClick={(e) => scrollToSection(e, link.href)}
+                  className="text-sm font-medium hover:text-gray-600 transition-colors"
                 >
-                  <Plus className="w-4 h-4 mr-2" />
-                  Report Found Item
-                </Button>
+                  {link.name}
+                </a>
+              ))}
+              <Link
+                to="/auth"
+                className="px-5 py-2.5 rounded-full bg-black text-white text-sm font-medium hover:bg-gray-800 transition-all hover:scale-105"
+              >
+                Get Started
+              </Link>
+            </>
+          ) : (
+            <>
+              <Link
+                to="/items"
+                className="text-sm font-medium hover:text-gray-600 transition-colors"
+              >
+                Browse Items
+              </Link>
+              <Link
+                to="/submit"
+                className="text-sm font-medium hover:text-gray-600 transition-colors"
+              >
+                Report Item
+              </Link>
 
-                {isTeacher && (
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => navigate("/admin")}
-                    aria-label="Open admin dashboard"
-                    className="nb-outline text-foreground"
-                  >
-                    <LayoutDashboard className="w-4 h-4 mr-2" />
-                    Admin
-                  </Button>
-                )}
-
-                <Button 
-                  variant="ghost" 
-                  size="sm" 
-                  onClick={handleSignOut}
-                  aria-label="Sign out"
-                  className="text-muted-foreground hover:text-foreground"
+              {isTeacher && (
+                <Link
+                  to="/admin"
+                  className="text-sm font-medium hover:text-gray-600 transition-colors"
                 >
-                  <LogOut className="w-4 h-4 mr-2" />
-                  Sign Out
-                </Button>
-              </>
-            ) : (
-              <div className="flex items-center gap-2">
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => navigate("/auth")}
-                  aria-label="Sign in"
-                  className="text-muted-foreground hover:text-foreground"
-                >
-                  <LogIn className="w-4 h-4 mr-2" />
-                  Sign In
-                </Button>
+                  Admin Dashboard
+                </Link>
+              )}
 
-                <Button
-                  variant="default"
-                  size="sm"
-                  onClick={() => navigate("/auth", { state: { isSignUp: true } })}
-                  aria-label="Sign up"
-                  className="nb-button bg-accent-gold text-black hover:bg-accent-gold/90 border-black"
-                >
-                  Sign Up
-                </Button>
-              </div>
-            )}
-          </div>
-
-          {/* Mobile hamburger button */}
-          <Button
-            variant="ghost"
-            size="sm"
-            className="md:hidden"
-            onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-            aria-label={mobileMenuOpen ? "Close menu" : "Open menu"}
-          >
-            {mobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
-          </Button>
+              <Button
+                variant="ghost"
+                onClick={handleSignOut}
+                className="flex items-center gap-2 hover:bg-red-50 hover:text-red-600"
+              >
+                <LogOut size={16} />
+                Sign Out
+              </Button>
+            </>
+          )}
         </div>
 
-        {/* Mobile menu */}
-        {mobileMenuOpen && (
-          <div className="md:hidden mt-4 pb-4 border-t border-border pt-4 space-y-3">
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => handleNavigate("/items")}
-              aria-label="Browse items"
-              className="w-full justify-start text-muted-foreground hover:text-foreground"
-            >
-              <Search className="w-4 h-4 mr-2" />
-              Browse Items
-            </Button>
-
-            {user ? (
-              <>
-                <Button
-                  variant="default"
-                  size="sm"
-                  onClick={() => handleNavigate("/submit")}
-                  aria-label="Report found item"
-                  className="w-full justify-start nb-button bg-accent-gold text-black hover:bg-accent-gold/90 border-black"
-                >
-                  <Plus className="w-4 h-4 mr-2" />
-                  Report Found Item
-                </Button>
-
-                {isTeacher && (
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => handleNavigate("/admin")}
-                    aria-label="Open admin dashboard"
-                    className="w-full justify-start nb-outline text-foreground"
-                  >
-                    <LayoutDashboard className="w-4 h-4 mr-2" />
-                    Admin
-                  </Button>
-                )}
-
-                <Button 
-                  variant="ghost" 
-                  size="sm" 
-                  onClick={handleSignOut}
-                  aria-label="Sign out"
-                  className="w-full justify-start text-muted-foreground hover:text-foreground"
-                >
-                  <LogOut className="w-4 h-4 mr-2" />
-                  Sign Out
-                </Button>
-              </>
-            ) : (
-              <>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => handleNavigate("/auth")}
-                  aria-label="Sign in"
-                  className="w-full justify-start text-muted-foreground hover:text-foreground"
-                >
-                  <LogIn className="w-4 h-4 mr-2" />
-                  Sign In
-                </Button>
-
-                <Button
-                  variant="default"
-                  size="sm"
-                  onClick={() => handleNavigate("/auth", { isSignUp: true })}
-                  aria-label="Sign up"
-                  className="w-full justify-start nb-button bg-accent-gold text-black hover:bg-accent-gold/90 border-black"
-                >
-                  Sign Up
-                </Button>
-              </>
-            )}
-          </div>
-        )}
+        {/* Mobile Toggle */}
+        <button
+          className="md:hidden p-2"
+          onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+        >
+          {isMobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
+        </button>
       </div>
+
+      {/* Mobile Menu */}
+      {isMobileMenuOpen && (
+        <div className="absolute top-full left-0 right-0 bg-white/95 backdrop-blur-xl border-t border-gray-100 p-6 flex flex-col space-y-4 md:hidden animate-fade-in shadow-lg">
+          {!user ? (
+            <>
+              {navLinks.map((link) => (
+                <a
+                  key={link.name}
+                  href={link.href}
+                  onClick={(e) => scrollToSection(e, link.href)}
+                  className="text-lg font-medium py-2"
+                >
+                  {link.name}
+                </a>
+              ))}
+              <Link
+                to="/auth"
+                className="w-full text-center py-3 rounded-full bg-black text-white font-medium"
+                onClick={() => setIsMobileMenuOpen(false)}
+              >
+                Get Started
+              </Link>
+            </>
+          ) : (
+            <>
+              <Link
+                to="/items"
+                className="text-lg font-medium py-2"
+                onClick={() => setIsMobileMenuOpen(false)}
+              >
+                Browse Items
+              </Link>
+              <Link
+                to="/submit"
+                className="text-lg font-medium py-2"
+                onClick={() => setIsMobileMenuOpen(false)}
+              >
+                Report Item
+              </Link>
+
+              {isTeacher && (
+                <Link
+                  to="/admin"
+                  className="text-lg font-medium py-2"
+                  onClick={() => setIsMobileMenuOpen(false)}
+                >
+                  Admin Dashboard
+                </Link>
+              )}
+
+              <button
+                onClick={() => {
+                  handleSignOut();
+                  setIsMobileMenuOpen(false);
+                }}
+                className="w-full text-center py-3 rounded-full bg-gray-100 text-red-600 font-medium flex items-center justify-center gap-2"
+              >
+                <LogOut size={18} />
+                Sign Out
+              </button>
+            </>
+          )}
+        </div>
+      )}
     </nav>
   );
 };
+
+export default Navbar;

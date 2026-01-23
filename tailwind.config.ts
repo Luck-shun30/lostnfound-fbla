@@ -1,5 +1,7 @@
 import type { Config } from "tailwindcss";
 
+
+
 export default {
   darkMode: ["class"],
   content: ["./pages/**/*.{ts,tsx}", "./components/**/*.{ts,tsx}", "./app/**/*.{ts,tsx}", "./src/**/*.{ts,tsx}"],
@@ -47,33 +49,21 @@ export default {
           DEFAULT: "hsl(var(--card))",
           foreground: "hsl(var(--card-foreground))",
         },
-        glass: {
-          DEFAULT: "hsl(var(--glass-background))",
-          border: "hsl(var(--glass-border))",
-          highlight: "hsl(var(--glass-highlight))",
-        },
+        // ShopOS specific colors
         orb: {
-          primary: "hsl(var(--orb-primary))",
-          secondary: "hsl(var(--orb-secondary))",
-          accent: "hsl(var(--orb-accent))",
+          1: "hsl(var(--orb-1))",
+          2: "hsl(var(--orb-2))",
+          3: "hsl(var(--orb-3))",
         },
-        "accent-green": {
-          DEFAULT: "hsl(var(--accent-green))",
-          foreground: "hsl(0 0% 100%)",
-        },
-        "accent-gold": {
-          DEFAULT: "hsl(var(--accent-gold))",
-          foreground: "hsl(0 0% 0%)",
-        },
+        glass: {
+          DEFAULT: "hsl(var(--glass))",
+          border: "hsl(var(--glass-border))",
+        }
       },
       borderRadius: {
         lg: "var(--radius)",
         md: "calc(var(--radius) - 2px)",
         sm: "calc(var(--radius) - 4px)",
-      },
-      boxShadow: {
-        'glass': 'var(--shadow-glass)',
-        'glow': 'var(--shadow-glow)',
       },
       keyframes: {
         "accordion-down": {
@@ -84,25 +74,28 @@ export default {
           from: { height: "var(--radix-accordion-content-height)" },
           to: { height: "0" },
         },
-        "fade-in": {
-          "0%": { opacity: "0", transform: "translateY(10px)" },
+        float: {
+          "0%, 100%": { transform: "translate(0, 0)" },
+          "25%": { transform: "translate(5%, 5%)" },
+          "50%": { transform: "translate(-5%, 10%)" },
+          "75%": { transform: "translate(0%, -10%)" }
+        },
+        "pulse-glow": {
+          "0%, 100%": { opacity: "0.4", transform: "scale(1)" },
+          "50%": { opacity: "0.6", transform: "scale(1.05)" },
+        },
+        reveal: {
+          "0%": { opacity: "0", transform: "translateY(20px)" },
           "100%": { opacity: "1", transform: "translateY(0)" }
-        },
-        "scale-in": {
-          "0%": { transform: "scale(0.95)", opacity: "0" },
-          "100%": { transform: "scale(1)", opacity: "1" }
-        },
-        "tilt": {
-          "0%, 100%": { transform: "perspective(1000px) rotateX(0deg) rotateY(0deg)" },
-          "50%": { transform: "perspective(1000px) rotateX(2deg) rotateY(2deg)" }
-        },
+        }
       },
       animation: {
         "accordion-down": "accordion-down 0.2s ease-out",
         "accordion-up": "accordion-up 0.2s ease-out",
-        "fade-in": "fade-in 0.5s ease-out",
-        "scale-in": "scale-in 0.3s ease-out",
-        "tilt": "tilt 10s infinite ease-in-out",
+        float: "float 20s ease-in-out infinite",
+        "float-delayed": "float 25s ease-in-out infinite -12s",
+        "pulse-glow": "pulse-glow 4s ease-in-out infinite",
+        reveal: "reveal 0.6s ease-out forwards",
       },
     },
   },

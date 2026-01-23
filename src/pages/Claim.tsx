@@ -2,7 +2,7 @@
 import { useState, useEffect } from "react";
 import { useParams, useNavigate, useSearchParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
-import { Navbar } from "@/components/Navbar";
+import Navbar from "@/components/Navbar";
 import { GlassCard } from "@/components/GlassCard";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -42,7 +42,7 @@ export default function Claim() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const initialMode = searchParams.get("mode") === "info" ? "info" : "claim";
-  
+
   const [loading, setLoading] = useState(false);
   const [item, setItem] = useState<FoundItem | null>(null);
   const [userId, setUserId] = useState<string | null>(null);
@@ -86,7 +86,7 @@ export default function Claim() {
       if (error) throw error;
       toast.success("Claim submitted successfully!");
       navigate("/items");
-    } catch (error) { toast.error("Failed to submit claim"); } 
+    } catch (error) { toast.error("Failed to submit claim"); }
     finally { setLoading(false); }
   };
 
@@ -103,7 +103,7 @@ export default function Claim() {
       if (error) throw error;
       toast.success("Info request submitted! You'll receive an email response.");
       navigate("/items");
-    } catch (error) { toast.error("Failed to submit request"); } 
+    } catch (error) { toast.error("Failed to submit request"); }
     finally { setLoading(false); }
   };
 

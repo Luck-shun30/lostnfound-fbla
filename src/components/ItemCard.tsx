@@ -1,4 +1,4 @@
-import { GlassCard } from "./GlassCard";
+import { GlassCard } from "@/components/GlassCard";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Calendar, MapPin, HelpCircle } from "lucide-react";
@@ -30,7 +30,7 @@ export const ItemCard = ({
   id,
 }: ItemCardProps) => {
   return (
-    <GlassCard hover className="overflow-hidden group animate-fade-in">
+    <GlassCard hover className="overflow-hidden group animate-fade-in border border-white/20">
       <div className="aspect-video relative overflow-hidden bg-white/95">
         {photoUrl ? (
           <img
@@ -46,7 +46,7 @@ export const ItemCard = ({
         <div className="absolute top-3 right-3">
           <Badge
             variant={status === "available" ? "default" : "secondary"}
-            className={status === "available" ? "bg-accent-green text-white border-0" : "nb-card-subtle text-foreground"}
+            className={status === "available" ? "bg-black text-white border-0" : "nb-card-subtle text-foreground"}
           >
             {status}
           </Badge>
@@ -77,18 +77,18 @@ export const ItemCard = ({
 
         {status === "available" && (
           <div className="flex gap-2">
-            <Button 
-              aria-label={`Claim item ${title}`} 
-              onClick={() => onClaim(id)} 
-              className="flex-1 nb-button bg-accent-green text-white hover:bg-accent-green/90 border-black"
+            <Button
+              aria-label={`Claim item ${title}`}
+              onClick={() => onClaim(id)}
+              className="flex-1 bg-black text-white hover:bg-gray-800 border-0"
             >
               Claim Item
             </Button>
-            <Button 
-              aria-label={`Request info about ${title}`} 
-              onClick={() => onRequestInfo(id)} 
+            <Button
+              aria-label={`Request info about ${title}`}
+              onClick={() => onRequestInfo(id)}
               variant="outline"
-              className="nb-outline text-foreground"
+              className="border-gray-300 text-foreground hover:bg-gray-100"
             >
               <HelpCircle className="w-4 h-4" />
             </Button>

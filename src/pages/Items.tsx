@@ -1,7 +1,7 @@
 // Items page: lists approved found items and provides search/filter tools.
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { Navbar } from "@/components/Navbar";
+import Navbar from "@/components/Navbar";
 import { ItemCard } from "@/components/ItemCard";
 import { GlassCard } from "@/components/GlassCard";
 import { Input } from "@/components/ui/input";
@@ -60,13 +60,13 @@ export default function Items() {
         .order("created_at", { ascending: false });
 
       if (error) throw error;
-      
+
       // Map items to include status as 'available'
       const itemsWithStatus = (data || []).map(item => ({
         ...item,
         status: 'available'
       }));
-      
+
       setItems(itemsWithStatus);
     } catch (error) {
       toast.error("Failed to load items");
@@ -133,7 +133,7 @@ export default function Items() {
         </GlassCard>
 
         {loading ? (
-            <div className="text-center py-12">
+          <div className="text-center py-12">
             <div className="inline-block animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-black"></div>
           </div>
         ) : filteredItems.length === 0 ? (

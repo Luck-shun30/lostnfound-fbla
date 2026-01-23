@@ -2,7 +2,7 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
-import { Navbar } from "@/components/Navbar";
+import Navbar from "@/components/Navbar";
 import { GlassCard } from "@/components/GlassCard";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -231,7 +231,7 @@ export default function Submit() {
                   }
                   required
                   maxLength={100}
-                    className="bg-secondary/50 border-border/50 focus:border-foreground"
+                  className="bg-secondary/50 border-border/50 focus:border-foreground"
                 />
               </div>
 
