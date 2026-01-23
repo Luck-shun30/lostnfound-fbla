@@ -11,6 +11,7 @@ import Claim from "./pages/Claim";
 import Admin from "./pages/Admin";
 import NotFound from "./pages/NotFound";
 import Footer from "./components/Footer";
+import CheckEmail from "./pages/CheckEmail";
 
 const queryClient = new QueryClient();
 
@@ -23,6 +24,7 @@ const App = () => (
         <Routes>
           <Route path="/" element={<Home />} />
           <Route path="/auth" element={<Auth />} />
+          <Route path="/check-email" element={<CheckEmail />} />
           <Route path="/items" element={<Items />} />
           <Route path="/submit" element={<Submit />} />
           <Route path="/claim/:id" element={<Claim />} />

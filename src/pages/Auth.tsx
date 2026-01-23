@@ -136,8 +136,8 @@ export default function Auth() {
           }
         }
 
-        toast.success("Account created successfully!");
-        // The onAuthStateChange will handle redirect
+        // toast.success("Account created successfully!");
+        navigate("/check-email");
       } else {
         const { error } = await supabase.auth.signInWithPassword({
           email,
@@ -264,8 +264,8 @@ export default function Auth() {
               {loading
                 ? "Processing..."
                 : isSignUp
-                ? "Create Account"
-                : "Sign In"}
+                  ? "Create Account"
+                  : "Sign In"}
             </Button>
 
             <div className="text-center">
