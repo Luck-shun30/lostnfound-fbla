@@ -57,6 +57,7 @@ const Footer = () => {
               <li><a href="https://docs.npmjs.com/policies/npm-license" className="text-gray-500 hover:text-black transition-colors">NPM Licensing</a></li>
               <li><a href="https://vercel.com/legal/notices-and-license-information" className="text-gray-500 hover:text-black transition-colors">Node.js Licensing</a></li>
               <li><a href="https://vercel.com/legal/notices-and-license-information" className="text-gray-500 hover:text-black transition-colors">Vercel Licensing</a></li>
+              <li><a href="https://github.com/google-gemini/gemini-api-quickstart/blob/main/LICENSE" className="text-gray-500 hover:text-black transition-colors">Gemini Licensing</a></li>
             </ul>
           </div>
         </div>
