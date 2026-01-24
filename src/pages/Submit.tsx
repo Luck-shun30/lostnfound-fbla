@@ -9,9 +9,10 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Upload, ArrowLeft } from "lucide-react";
+import { Upload, ArrowLeft, Sparkles, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import { z } from "zod";
+import { generateItemDetails } from "@/utils/gemini";
 
 const itemSchema = z.object({
   title: z.string().min(3, "Title must be at least 3 characters").max(100),
@@ -34,6 +35,7 @@ const categories = [
 export default function Submit() {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
+  const [loadingAutofill, setLoadingAutofill] = useState(false);
   const [userId, setUserId] = useState<string | null>(null);
   const [photoFile, setPhotoFile] = useState<File | null>(null);
   const [photoPreview, setPhotoPreview] = useState<string | null>(null);
@@ -70,6 +72,29 @@ export default function Submit() {
         setPhotoPreview(reader.result as string);
       };
       reader.readAsDataURL(file);
+    }
+  };
+
+  const handleAutofill = async () => {
+    if (!photoFile) return;
+
+    setLoadingAutofill(true);
+    try {
+      const details = await generateItemDetails(photoFile);
+      if (details) {
+        setFormData(prev => ({
+          ...prev,
+          title: details.title,
+          description: details.description,
+          category: categories.includes(details.category) ? details.category : "Other",
+        }));
+        toast.success("Item details autofilled!");
+      }
+    } catch (error) {
+      console.error(error);
+      toast.error("Failed to autofill details. Please try again.");
+    } finally {
+      setLoadingAutofill(false);
     }
   };
 
@@ -150,6 +175,69 @@ export default function Submit() {
 
             {/* Submit form */}
             <form onSubmit={handleSubmit} className="space-y-6">
+
+              {/* Photo Upload - Moved to Top */}
+              <div className="space-y-2">
+                <div className="flex justify-between items-center mb-2">
+                  <Label htmlFor="photo" className="text-base font-semibold">Item Photo (Recommended)</Label>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={handleAutofill}
+                    disabled={!photoFile || loadingAutofill}
+                    className="h-8 border-violet-200 hover:bg-violet-50 hover:text-violet-700 hover:border-violet-300 transition-colors"
+                  >
+                    {loadingAutofill ? (
+                      <Loader2 className="w-3 h-3 mr-1.5 animate-spin" />
+                    ) : (
+                      <Sparkles className="w-3 h-3 mr-1.5 text-violet-500" />
+                    )}
+                    Autofill with AI
+                  </Button>
+                </div>
+
+                <div className="flex flex-col gap-4">
+                  {photoPreview ? (
+                    <div className="relative rounded-lg overflow-hidden border border-border/50 group">
+                      <img src={photoPreview} alt="Preview" className="w-full h-64 object-cover" />
+                      <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                        <Button
+                          type="button"
+                          variant="secondary"
+                          onClick={() => document.getElementById("photo")?.click()}
+                        >
+                          Change Photo
+                        </Button>
+                      </div>
+                    </div>
+                  ) : (
+                    <div
+                      onClick={() => document.getElementById("photo")?.click()}
+                      className="border-2 border-dashed border-border/50 rounded-xl p-8 flex flex-col items-center justify-center cursor-pointer hover:border-gray-400 hover:bg-gray-50/50 transition-all min-h-[200px]"
+                    >
+                      <div className="w-12 h-12 rounded-full bg-gray-100 flex items-center justify-center mb-3">
+                        <Upload className="w-6 h-6 text-gray-500" />
+                      </div>
+                      <p className="font-medium text-gray-700">Click to upload photo</p>
+                      <p className="text-sm text-gray-400 mt-1">PNG, JPG up to 5MB</p>
+                    </div>
+                  )}
+                  <input
+                    id="photo"
+                    type="file"
+                    accept="image/*"
+                    onChange={handlePhotoChange}
+                    className="hidden"
+                  />
+                  {!photoFile && (
+                    <p className="text-xs text-muted-foreground">
+                      Upload a photo to enable AI autofill for item details.
+                    </p>
+                  )}
+                </div>
+              </div>
+
               <div className="space-y-2">
                 <Label htmlFor="title">Item Title *</Label>
                 <Input
@@ -233,34 +321,6 @@ export default function Submit() {
                   maxLength={100}
                   className="bg-secondary/50 border-border/50 focus:border-foreground"
                 />
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="photo">Photo (optional)</Label>
-                <div className="flex items-center gap-4">
-                  <Button
-                    type="button"
-                    aria-label={photoFile ? "Change uploaded photo" : "Upload photo"}
-                    variant="outline"
-                    onClick={() => document.getElementById("photo")?.click()}
-                    className="w-full border-border/50 nb-outline"
-                  >
-                    <Upload className="w-4 h-4 mr-2" />
-                    {photoFile ? "Change Photo" : "Upload Photo"}
-                  </Button>
-                  <input
-                    id="photo"
-                    type="file"
-                    accept="image/*"
-                    onChange={handlePhotoChange}
-                    className="hidden"
-                  />
-                </div>
-                {photoPreview && (
-                  <div className="mt-4 rounded-lg overflow-hidden border border-border/50">
-                    <img src={photoPreview} alt="Preview" className="w-full h-64 object-cover" />
-                  </div>
-                )}
               </div>
 
               <Button
