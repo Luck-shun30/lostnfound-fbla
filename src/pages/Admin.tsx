@@ -182,7 +182,7 @@ export default function Admin() {
     try {
       const { error } = await supabase
         .from("found_items")
-        .update({ approved: false })
+        .update({ approved: false, status: "rejected" })
         .eq("id", itemId);
 
       if (error) throw error;
@@ -436,7 +436,7 @@ export default function Admin() {
         <Tabs defaultValue="items" className="space-y-6">
           <TabsList className="liquid-glass-subtle grid w-full max-w-2xl grid-cols-4">
             <TabsTrigger value="items">
-              Pending ({items.filter((i) => !i.approved).length})
+              Pending ({items.filter((i) => !i.approved && i.status !== "rejected").length})
             </TabsTrigger>
             <TabsTrigger value="claims">
               Claims ({claims.filter((c) => c.status === "pending").length})
@@ -451,12 +451,12 @@ export default function Admin() {
 
           {/* Pending Items Tab */}
           <TabsContent value="items" className="space-y-4">
-            {items.filter((item) => !item.approved).length === 0 ? (
+            {items.filter((item) => !item.approved && item.status !== "rejected").length === 0 ? (
               <GlassCard className="p-8 text-center">
                 <p className="text-muted-foreground">No pending items</p>
               </GlassCard>
             ) : (
-              items.filter((item) => !item.approved).map((item) => (
+              items.filter((item) => !item.approved && item.status !== "rejected").map((item) => (
                 <GlassCard key={item.id} className="p-6 animate-fade-in">
                   <div className="flex flex-col md:flex-row gap-6">
                     {item.photo_url && (
