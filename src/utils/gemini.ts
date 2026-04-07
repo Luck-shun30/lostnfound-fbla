@@ -28,11 +28,14 @@ export async function fileToGenerativePart(file: File): Promise<{ inlineData: { 
 }
 
 export interface AutofillData {
+    // Data structure expected from the Gemini API response for item details autofill.
     title: string;
     description: string;
     category: string;
 }
 
+// Method used in the item form to generate title, description, and category from an image using Gemini API. 
+// The response is expected to be a JSON object with the specified fields.
 export async function generateItemDetails(imageFile: File): Promise<AutofillData | null> {
     if (!API_KEY) {
         throw new Error("Gemini API key is missing. Please check your configuration.");
