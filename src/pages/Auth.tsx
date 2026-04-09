@@ -11,7 +11,7 @@ import { Label } from "@/components/ui/label";
 import { GlassCard } from "@/components/GlassCard";
 import { toast } from "sonner";
 import { z } from "zod";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { User, GraduationCap } from "lucide-react";
 
 const authSchema = z.object({
@@ -22,6 +22,29 @@ const authSchema = z.object({
 });
 
 type AccountType = "student" | "teacher";
+
+const PENDING_TEACHER_SIGNUP_KEY = "pendingTeacherSignup";
+
+const GoogleIcon = () => (
+  <svg aria-hidden="true" viewBox="0 0 24 24" className="h-4 w-4">
+    <path
+      d="M21.805 12.227c0-.79-.071-1.548-.204-2.273H12v4.302h5.493a4.696 4.696 0 0 1-2.037 3.082v2.56h3.296c1.93-1.776 3.053-4.397 3.053-7.671Z"
+      fill="#4285F4"
+    />
+    <path
+      d="M12 22c2.754 0 5.063-.913 6.75-2.47l-3.296-2.56c-.913.612-2.08.973-3.454.973-2.657 0-4.907-1.793-5.71-4.2H2.882v2.641A9.999 9.999 0 0 0 12 22Z"
+      fill="#34A853"
+    />
+    <path
+      d="M6.29 13.743A5.998 5.998 0 0 1 5.97 12c0-.605.109-1.191.32-1.743V7.616H2.882A9.999 9.999 0 0 0 2 12c0 1.61.384 3.134 1.064 4.384l3.226-2.641Z"
+      fill="#FBBC04"
+    />
+    <path
+      d="M12 6.057c1.497 0 2.843.515 3.902 1.524l2.926-2.926C17.06 3.005 14.752 2 12 2A9.999 9.999 0 0 0 2.882 7.616l3.407 2.641c.803-2.407 3.053-4.2 5.71-4.2Z"
+      fill="#EA4335"
+    />
+  </svg>
+);
 
 export default function Auth() {
   const navigate = useNavigate();
@@ -40,6 +63,26 @@ export default function Auth() {
   useEffect(() => {
     const checkSessionAndRedirect = async (session: any) => {
       if (session) {
+        const pendingTeacherSignup = localStorage.getItem(PENDING_TEACHER_SIGNUP_KEY);
+
+        if (pendingTeacherSignup) {
+          const { error } = await supabase.functions.invoke("assign-teacher-role", {
+            body: {
+              accessCode: pendingTeacherSignup,
+            },
+          });
+
+          if (error) {
+            localStorage.removeItem(PENDING_TEACHER_SIGNUP_KEY);
+            toast.error("Teacher setup failed. Please sign in and try again.");
+            await supabase.auth.signOut();
+            return;
+          }
+
+          localStorage.removeItem(PENDING_TEACHER_SIGNUP_KEY);
+          toast.success("Teacher account set up successfully!");
+        }
+
         // Check if user is a teacher
         const { data: roles } = await supabase
           .from("user_roles")
@@ -94,13 +137,17 @@ export default function Auth() {
             setLoading(false);
             return;
           }
+
+          localStorage.setItem(PENDING_TEACHER_SIGNUP_KEY, teacherCode);
+        } else {
+          localStorage.removeItem(PENDING_TEACHER_SIGNUP_KEY);
         }
 
-        const { data, error } = await supabase.auth.signUp({
+        const { error } = await supabase.auth.signUp({
           email,
           password,
           options: {
-            emailRedirectTo: `${window.location.origin}/items`,
+            emailRedirectTo: `${window.location.origin}/auth`,
             data: {
               full_name: fullName,
             },
@@ -108,6 +155,7 @@ export default function Auth() {
         });
 
         if (error) {
+          localStorage.removeItem(PENDING_TEACHER_SIGNUP_KEY);
           if (error.message.includes("already registered")) {
             toast.error("This email is already registered. Please sign in instead.");
           } else {
@@ -117,28 +165,10 @@ export default function Auth() {
           return;
         }
 
-        // If teacher account, assign teacher role in user_roles table
-        if (data.user && accountType === "teacher") {
-          const { error: roleError } = await supabase
-            .from("user_roles")
-            .insert({
-              user_id: data.user.id,
-              role: "teacher",
-            });
-
-          if (roleError) {
-            console.error("Failed to assign teacher role:", roleError);
-            toast.error("Failed to assign teacher role. Please contact administration.");
-            // Sign out the user since teacher role failed
-            await supabase.auth.signOut();
-            setLoading(false);
-            return;
-          }
-        }
-
         // toast.success("Account created successfully!");
         navigate("/check-email");
       } else {
+        localStorage.removeItem(PENDING_TEACHER_SIGNUP_KEY);
         const { error } = await supabase.auth.signInWithPassword({
           email,
           password,
@@ -151,8 +181,48 @@ export default function Auth() {
         }
       }
     } catch (error) {
+      localStorage.removeItem(PENDING_TEACHER_SIGNUP_KEY);
       toast.error("An unexpected error occurred");
     } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleGoogleAuth = async () => {
+    setLoading(true);
+
+    try {
+      const isTeacherGoogleSignup = isSignUp && accountType === "teacher";
+
+      if (isSignUp && accountType === "teacher") {
+        const TEACHER_ACCESS_CODE = "TEACHER2026";
+
+        if (teacherCode !== TEACHER_ACCESS_CODE) {
+          toast.error("Invalid teacher access code");
+          setLoading(false);
+          return;
+        }
+
+        localStorage.setItem(PENDING_TEACHER_SIGNUP_KEY, teacherCode);
+      } else {
+        localStorage.removeItem(PENDING_TEACHER_SIGNUP_KEY);
+      }
+
+      const { error } = await supabase.auth.signInWithOAuth({
+        provider: "google",
+        options: {
+          redirectTo: `${window.location.origin}${isTeacherGoogleSignup ? "/auth" : "/items"}`,
+        },
+      });
+
+      if (error) {
+        localStorage.removeItem(PENDING_TEACHER_SIGNUP_KEY);
+        toast.error(error.message);
+        setLoading(false);
+      }
+    } catch (error) {
+      localStorage.removeItem(PENDING_TEACHER_SIGNUP_KEY);
+      toast.error("Unable to continue with Google");
       setLoading(false);
     }
   };
@@ -225,6 +295,33 @@ export default function Auth() {
                 )}
               </>
             )}
+
+            <Button
+              type="button"
+              variant="outline"
+              aria-label={isSignUp ? "Sign up with Google" : "Sign in with Google"}
+              className="w-full bg-white font-semibold"
+              disabled={loading}
+              onClick={handleGoogleAuth}
+            >
+              <GoogleIcon />
+              {loading
+                ? "Redirecting..."
+                : isSignUp
+                  ? "Sign Up with Google"
+                  : "Sign In with Google"}
+            </Button>
+
+            <div className="relative py-2">
+              <div className="absolute inset-0 flex items-center">
+                <span className="w-full border-t border-border/60" />
+              </div>
+              <div className="relative flex justify-center text-xs uppercase">
+                <span className="bg-background px-2 text-muted-foreground">
+                  Or continue with email
+                </span>
+              </div>
+            </div>
 
             <div className="space-y-2">
               <Label htmlFor="email">Email</Label>
