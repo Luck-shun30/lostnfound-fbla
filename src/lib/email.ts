@@ -232,3 +232,24 @@ export const sendInfoResponseEmail = async (
     return { success: false, error: String(error) };
   }
 };
+
+export const queueSubmittedItemNotificationEmails = async (
+  itemId: string
+): Promise<{ success: boolean; queued: number; error?: string }> => {
+  try {
+    const { data, error } = await supabase.rpc("queue_new_item_report_emails", {
+      _item_id: itemId,
+      _app_origin: window.location.origin,
+    });
+
+    if (error) {
+      console.error("Failed to queue submitted item notification emails:", error);
+      return { success: false, queued: 0, error: error.message };
+    }
+
+    return { success: true, queued: data || 0 };
+  } catch (error) {
+    console.error("Error queuing submitted item notification emails:", error);
+    return { success: false, queued: 0, error: String(error) };
+  }
+};

@@ -1,5 +1,5 @@
 // Admin dashboard: manage pending items, claims, and info requests. Restricted to teacher/admin users.
-import { useState, useEffect } from "react";
+import { useMemo, useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import Navbar from "@/components/Navbar";
@@ -8,10 +8,12 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
-import { Check, X, Trash2, Lock, ShieldCheck, Pencil, MessageSquare, Send } from "lucide-react";
+import { ItemImageCarousel } from "@/components/ItemImageCarousel";
+import { Check, X, Trash2, Lock, ShieldCheck, Pencil, MessageSquare, Send, Search, Filter } from "lucide-react";
 import { toast } from "sonner";
 import { format } from "date-fns";
 import { sendClaimApprovalEmail, sendInfoResponseEmail } from "@/lib/email";
@@ -26,6 +28,7 @@ interface FoundItem {
   location_found: string;
   date_found: string;
   photo_url: string | null;
+  photo_urls: string[] | null;
   status: string;
   approved: boolean;
   created_at: string;
@@ -46,6 +49,14 @@ interface Claim {
   };
 }
 
+interface UserProfile {
+  id: string;
+  full_name: string;
+  email: string;
+  created_at: string | null;
+  roles: string[];
+}
+
 interface InfoRequest {
   id: string;
   item_id: string;
@@ -62,16 +73,31 @@ interface InfoRequest {
   };
 }
 
+const getReportStatus = (item: FoundItem) => {
+  if (item.status === "rejected") return "rejected";
+  if (item.approved || item.status === "claimed" || item.status === "returned") return "accepted";
+  return "pending";
+};
+
+const getReportStatusClassName = (status: string) => {
+  if (status === "accepted") return "bg-accent-green/20 text-accent-green border-accent-green";
+  if (status === "rejected") return "bg-destructive/10 text-destructive border-destructive/40";
+  return "bg-white/90 text-foreground border-black";
+};
+
 export default function Admin() {
   const navigate = useNavigate();
   const [items, setItems] = useState<FoundItem[]>([]);
   const [claims, setClaims] = useState<Claim[]>([]);
   const [infoRequests, setInfoRequests] = useState<InfoRequest[]>([]);
+  const [users, setUsers] = useState<UserProfile[]>([]);
   const [loading, setLoading] = useState(true);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [isTeacher, setIsTeacher] = useState(false);
   const [adminPassword, setAdminPassword] = useState("");
   const [checkingAuth, setCheckingAuth] = useState(true);
+  const [reportSearchQuery, setReportSearchQuery] = useState("");
+  const [reportStatusFilter, setReportStatusFilter] = useState("all");
 
   // Edit item dialog state
   const [editingItem, setEditingItem] = useState<FoundItem | null>(null);
@@ -132,30 +158,54 @@ export default function Admin() {
 
   const fetchData = async () => {
     try {
-      const { data: itemsData } = await supabase
-        .from("found_items")
-        .select("*")
-        .order("created_at", { ascending: false });
+      const [itemsResult, claimsResult, infoResult, profilesResult, rolesResult] = await Promise.all([
+        supabase
+          .from("found_items")
+          .select("*")
+          .order("created_at", { ascending: false }),
+        supabase
+          .from("claims")
+          .select(`
+            *,
+            found_items(title, location_found)
+          `)
+          .order("created_at", { ascending: false }),
+        supabase
+          .from("info_requests")
+          .select(`
+            *,
+            found_items(title)
+          `)
+          .order("created_at", { ascending: false }),
+        supabase
+          .from("profiles")
+          .select("id, full_name, email, created_at")
+          .order("created_at", { ascending: false }),
+        supabase
+          .from("user_roles")
+          .select("user_id, role"),
+      ]);
 
-      const { data: claimsData } = await supabase
-        .from("claims")
-        .select(`
-          *,
-          found_items(title, location_found)
-        `)
-        .order("created_at", { ascending: false });
+      if (itemsResult.error) throw itemsResult.error;
+      if (claimsResult.error) console.warn("Failed to load claims:", claimsResult.error);
+      if (infoResult.error) console.warn("Failed to load info requests:", infoResult.error);
+      if (profilesResult.error) console.warn("Failed to load user directory:", profilesResult.error);
+      if (rolesResult.error) console.warn("Failed to load user roles:", rolesResult.error);
 
-      const { data: infoData } = await supabase
-        .from("info_requests")
-        .select(`
-          *,
-          found_items(title)
-        `)
-        .order("created_at", { ascending: false });
+      const rolesByUser = new Map<string, string[]>();
+      (rolesResult.data || []).forEach((role) => {
+        rolesByUser.set(role.user_id, [...(rolesByUser.get(role.user_id) || []), role.role]);
+      });
 
-      setItems(itemsData || []);
-      setClaims(claimsData || []);
-      setInfoRequests(infoData || []);
+      setItems(itemsResult.data || []);
+      setClaims(claimsResult.data || []);
+      setInfoRequests(infoResult.data || []);
+      setUsers(
+        (profilesResult.data || []).map((profile) => ({
+          ...profile,
+          roles: rolesByUser.get(profile.id) || [],
+        }))
+      );
     } catch (error) {
       toast.error("Failed to load data");
     } finally {
@@ -167,7 +217,7 @@ export default function Admin() {
     try {
       const { error } = await supabase
         .from("found_items")
-        .update({ approved: true })
+        .update({ approved: true, status: "available" })
         .eq("id", itemId);
 
       if (error) throw error;
@@ -272,18 +322,18 @@ export default function Admin() {
         console.warn("Email notification failed to queue, but proceeding with approval");
       }
 
-      // Delete the claim
+      // Preserve the claim for admin history.
       const { error: claimError } = await supabase
         .from("claims")
-        .delete()
+        .update({ status: "approved" })
         .eq("id", claim.id);
 
       if (claimError) throw claimError;
 
-      // Delete the item (it's been claimed successfully)
+      // Keep the item record for admin history while removing it from public listings.
       const { error: itemError } = await supabase
         .from("found_items")
-        .delete()
+        .update({ status: "claimed", approved: false })
         .eq("id", claim.item_id);
 
       if (itemError) throw itemError;
@@ -359,6 +409,28 @@ export default function Admin() {
     }
   };
 
+  const pendingInfoRequests = infoRequests.filter(r => r.status === "pending");
+  const pendingReports = useMemo(
+    () => items.filter((item) => getReportStatus(item) === "pending"),
+    [items]
+  );
+  const filteredReports = useMemo(() => {
+    const normalizedQuery = reportSearchQuery.trim().toLowerCase();
+
+    return items.filter((item) => {
+      const reportStatus = getReportStatus(item);
+      const matchesStatus = reportStatusFilter === "all" || reportStatus === reportStatusFilter;
+      const matchesSearch =
+        !normalizedQuery ||
+        item.title.toLowerCase().includes(normalizedQuery) ||
+        item.description.toLowerCase().includes(normalizedQuery) ||
+        item.category.toLowerCase().includes(normalizedQuery) ||
+        item.location_found.toLowerCase().includes(normalizedQuery);
+
+      return matchesStatus && matchesSearch;
+    });
+  }, [items, reportSearchQuery, reportStatusFilter]);
+
   if (checkingAuth) {
     return (
       <div className="min-h-screen relative">
@@ -424,8 +496,6 @@ export default function Admin() {
     );
   }
 
-  const pendingInfoRequests = infoRequests.filter(r => r.status === "pending");
-
   return (
     <div className="min-h-screen relative">
       <Navbar />
@@ -434,36 +504,42 @@ export default function Admin() {
         <h1 className="text-4xl font-bold mb-8 text-foreground animate-fade-in">Admin Dashboard</h1>
 
         <Tabs defaultValue="items" className="space-y-6">
-          <TabsList className="liquid-glass-subtle grid w-full max-w-2xl grid-cols-4">
+          <TabsList className="liquid-glass-subtle grid w-full grid-cols-2 md:grid-cols-3 lg:grid-cols-6">
             <TabsTrigger value="items">
-              Pending ({items.filter((i) => !i.approved && i.status !== "rejected").length})
+              Report Review ({pendingReports.length})
             </TabsTrigger>
             <TabsTrigger value="claims">
-              Claims ({claims.filter((c) => c.status === "pending").length})
+              Claim Review ({claims.filter((c) => c.status === "pending").length})
             </TabsTrigger>
             <TabsTrigger value="info">
-              Info Req ({pendingInfoRequests.length})
+              Info Requests ({pendingInfoRequests.length})
             </TabsTrigger>
-            <TabsTrigger value="approved">
-              Approved ({items.filter((i) => i.approved).length})
+            <TabsTrigger value="reports">
+              Report History ({items.length})
+            </TabsTrigger>
+            <TabsTrigger value="history">
+              Claim History ({claims.length})
+            </TabsTrigger>
+            <TabsTrigger value="users">
+              User Directory ({users.length})
             </TabsTrigger>
           </TabsList>
 
           {/* Pending Items Tab */}
           <TabsContent value="items" className="space-y-4">
-            {items.filter((item) => !item.approved && item.status !== "rejected").length === 0 ? (
+            {pendingReports.length === 0 ? (
               <GlassCard className="p-8 text-center">
-                <p className="text-muted-foreground">No pending items</p>
+                <p className="text-muted-foreground">No pending reports</p>
               </GlassCard>
             ) : (
-              items.filter((item) => !item.approved && item.status !== "rejected").map((item) => (
+              pendingReports.map((item) => (
                 <GlassCard key={item.id} className="p-6 animate-fade-in">
                   <div className="flex flex-col md:flex-row gap-6">
-                    {item.photo_url && (
-                      <div className="w-full md:w-48 h-48 rounded-lg overflow-hidden flex-shrink-0">
-                        <img src={item.photo_url} alt={item.title} className="w-full h-full object-cover" />
-                      </div>
-                    )}
+                    <ItemImageCarousel
+                      images={item.photo_urls?.length ? item.photo_urls : [item.photo_url]}
+                      title={item.title}
+                      className="w-full md:w-48 h-48 rounded-lg flex-shrink-0"
+                    />
                     <div className="flex-1 space-y-3">
                       <div className="flex items-start justify-between">
                         <div>
@@ -577,44 +653,154 @@ export default function Admin() {
             )}
           </TabsContent>
 
-          {/* Approved Items Tab */}
-          <TabsContent value="approved" className="space-y-4">
-            {items.filter((item) => item.approved).length === 0 ? (
+          {/* All Reports Tab */}
+          <TabsContent value="reports" className="space-y-4">
+            <GlassCard subtle className="p-4">
+              <div className="flex flex-col gap-4 md:flex-row">
+                <div className="relative flex-1">
+                  <Search className="absolute left-3 top-1/2 h-5 w-5 -translate-y-1/2 text-muted-foreground" />
+                  <Input
+                    placeholder="Search reports..."
+                    value={reportSearchQuery}
+                    onChange={(e) => setReportSearchQuery(e.target.value)}
+                    className="pl-10 bg-secondary/50 border-border/50 focus:border-foreground"
+                  />
+                </div>
+                <div className="w-full md:w-64">
+                  <Select value={reportStatusFilter} onValueChange={setReportStatusFilter}>
+                    <SelectTrigger className="bg-secondary/50 border-border/50">
+                      <Filter className="w-4 h-4 mr-2" />
+                      <SelectValue placeholder="All statuses" />
+                    </SelectTrigger>
+                    <SelectContent className="liquid-glass border-border/50">
+                      <SelectItem value="all">All Statuses</SelectItem>
+                      <SelectItem value="pending">Pending</SelectItem>
+                      <SelectItem value="accepted">Accepted</SelectItem>
+                      <SelectItem value="rejected">Rejected</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+            </GlassCard>
+
+            {filteredReports.length === 0 ? (
               <GlassCard className="p-8 text-center">
-                <p className="text-muted-foreground">No approved listings</p>
+                <p className="text-muted-foreground">
+                  {items.length === 0 ? "No reports yet" : "No reports match your filters"}
+                </p>
               </GlassCard>
             ) : (
-              items.filter((item) => item.approved).map((item) => (
-                <GlassCard key={item.id} className="p-6 animate-fade-in">
-                  <div className="flex flex-col md:flex-row gap-6">
-                    {item.photo_url && (
-                      <div className="w-full md:w-48 h-48 rounded-lg overflow-hidden flex-shrink-0">
-                        <img src={item.photo_url} alt={item.title} className="w-full h-full object-cover" />
-                      </div>
-                    )}
-                    <div className="flex-1 space-y-3">
-                      <div className="flex items-start justify-between">
-                        <div>
-                          <h3 className="text-xl font-semibold text-foreground">{item.title}</h3>
-                          <p className="text-sm text-muted-foreground">
-                            Approved • Found on {format(new Date(item.date_found), "MMM d, yyyy")}
-                          </p>
+              filteredReports.map((item) => {
+                const reportStatus = getReportStatus(item);
+
+                return (
+                  <GlassCard key={item.id} className="p-6 animate-fade-in">
+                    <div className="flex flex-col md:flex-row gap-6">
+                      <ItemImageCarousel
+                        images={item.photo_urls?.length ? item.photo_urls : [item.photo_url]}
+                        title={item.title}
+                        className="w-full md:w-48 h-48 rounded-lg flex-shrink-0"
+                      />
+                      <div className="flex-1 space-y-3">
+                        <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
+                          <div>
+                            <h3 className="text-xl font-semibold text-foreground">{item.title}</h3>
+                            <p className="text-sm text-muted-foreground">
+                              Reported on {format(new Date(item.created_at), "MMM d, yyyy 'at' h:mm a")}
+                            </p>
+                          </div>
+                          <Badge className={`capitalize ${getReportStatusClassName(reportStatus)}`}>
+                            {reportStatus}
+                          </Badge>
                         </div>
-                        <Badge className="bg-accent-green/20 text-accent-green border-accent-green">{item.category}</Badge>
+                        <p className="text-sm text-muted-foreground">{item.description}</p>
+                        <div className="text-sm space-y-1">
+                          <p><strong className="text-foreground">Category:</strong> <span className="text-muted-foreground">{item.category}</span></p>
+                          <p><strong className="text-foreground">Location:</strong> <span className="text-muted-foreground">{item.location_found}</span></p>
+                          <p><strong className="text-foreground">Date Found:</strong> <span className="text-muted-foreground">{format(new Date(item.date_found), "MMM d, yyyy")}</span></p>
+                        </div>
+                        <div className="flex gap-2 pt-4 flex-wrap">
+                          <Button size="sm" variant="outline" onClick={() => handleEditItem(item)} className="nb-outline text-foreground">
+                            <Pencil className="w-4 h-4 mr-2" />Edit
+                          </Button>
+                          <Button size="sm" variant="outline" onClick={() => handleDeleteItem(item.id)} className="nb-outline text-foreground hover:bg-destructive/10 hover:border-destructive">
+                            <Trash2 className="w-4 h-4 mr-2" />Remove
+                          </Button>
+                        </div>
                       </div>
-                      <p className="text-sm text-muted-foreground">{item.description}</p>
-                      <div className="text-sm space-y-1">
-                        <p><strong className="text-foreground">Location:</strong> <span className="text-muted-foreground">{item.location_found}</span></p>
-                        <p><strong className="text-foreground">Status:</strong> <span className="text-muted-foreground capitalize">{item.status}</span></p>
+                    </div>
+                  </GlassCard>
+                );
+              })
+            )}
+          </TabsContent>
+
+          {/* Claim History Tab */}
+          <TabsContent value="history" className="space-y-4">
+            {claims.length === 0 ? (
+              <GlassCard className="p-8 text-center">
+                <p className="text-muted-foreground">No claims yet</p>
+              </GlassCard>
+            ) : (
+              claims.map((claim) => (
+                <GlassCard key={claim.id} className="p-6 animate-fade-in">
+                  <div className="space-y-4">
+                    <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
+                      <div>
+                        <h3 className="text-xl font-semibold mb-1 text-foreground">
+                          Claim for: {claim.found_items?.title || "Unknown Item"}
+                        </h3>
+                        <p className="text-sm text-muted-foreground">
+                          Submitted on {format(new Date(claim.created_at), "MMM d, yyyy 'at' h:mm a")}
+                        </p>
                       </div>
-                      <div className="flex gap-2 pt-4 flex-wrap">
-                        <Button size="sm" variant="outline" onClick={() => handleEditItem(item)} className="nb-outline text-foreground">
-                          <Pencil className="w-4 h-4 mr-2" />Edit
-                        </Button>
-                        <Button size="sm" variant="outline" onClick={() => handleDeleteItem(item.id)} className="nb-outline text-foreground hover:bg-destructive/10 hover:border-destructive">
-                          <Trash2 className="w-4 h-4 mr-2" />Remove
-                        </Button>
-                      </div>
+                      <Badge className="capitalize">{claim.status}</Badge>
+                    </div>
+                    <div className="grid gap-2 text-sm md:grid-cols-2">
+                      <p><strong className="text-foreground">Name:</strong> <span className="text-muted-foreground">{claim.claimant_name}</span></p>
+                      <p><strong className="text-foreground">Email:</strong> <span className="text-muted-foreground">{claim.claimant_email}</span></p>
+                      {claim.claimant_phone && (
+                        <p><strong className="text-foreground">Phone:</strong> <span className="text-muted-foreground">{claim.claimant_phone}</span></p>
+                      )}
+                      {claim.found_items?.location_found && (
+                        <p><strong className="text-foreground">Found at:</strong> <span className="text-muted-foreground">{claim.found_items.location_found}</span></p>
+                      )}
+                    </div>
+                    <div>
+                      <strong className="text-sm text-foreground">Claim details:</strong>
+                      <p className="text-sm text-muted-foreground mt-1">{claim.description}</p>
+                    </div>
+                  </div>
+                </GlassCard>
+              ))
+            )}
+          </TabsContent>
+
+          {/* Users Tab */}
+          <TabsContent value="users" className="space-y-4">
+            {users.length === 0 ? (
+              <GlassCard className="p-8 text-center">
+                <p className="text-muted-foreground">No users found</p>
+              </GlassCard>
+            ) : (
+              users.map((user) => (
+                <GlassCard key={user.id} className="p-6 animate-fade-in">
+                  <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                    <div>
+                      <h3 className="text-lg font-semibold text-foreground">{user.full_name}</h3>
+                      <p className="text-sm text-muted-foreground">{user.email}</p>
+                      {user.created_at && (
+                        <p className="text-xs text-muted-foreground mt-1">
+                          Joined {format(new Date(user.created_at), "MMM d, yyyy")}
+                        </p>
+                      )}
+                    </div>
+                    <div className="flex flex-wrap gap-2">
+                      {(user.roles.length ? user.roles : ["user"]).map((role) => (
+                        <Badge key={role} variant="outline" className="capitalize border-black text-foreground">
+                          {role}
+                        </Badge>
+                      ))}
                     </div>
                   </div>
                 </GlassCard>

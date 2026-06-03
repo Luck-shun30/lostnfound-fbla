@@ -1,6 +1,7 @@
 import { GlassCard } from "@/components/GlassCard";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { ItemImageCarousel } from "@/components/ItemImageCarousel";
 import { Calendar, MapPin, HelpCircle } from "lucide-react";
 import { format } from "date-fns";
 
@@ -12,6 +13,7 @@ interface ItemCardProps {
   location: string;
   dateFound: string;
   photoUrl?: string;
+  photoUrls?: string[];
   status: string;
   onClaim: (id: string) => void;
   onRequestInfo: (id: string) => void;
@@ -24,25 +26,23 @@ export const ItemCard = ({
   location,
   dateFound,
   photoUrl,
+  photoUrls,
   status,
   onClaim,
   onRequestInfo,
   id,
 }: ItemCardProps) => {
+  const images = photoUrls?.length ? photoUrls : photoUrl ? [photoUrl] : [];
+
   return (
     <GlassCard hover className="overflow-hidden group animate-fade-in border border-white/20">
       <div className="aspect-video relative overflow-hidden bg-white/95">
-        {photoUrl ? (
-          <img
-            src={photoUrl}
-            alt={title}
-            className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
-          />
-        ) : (
-          <div className="w-full h-full flex items-center justify-center">
-            <span className="text-4xl text-muted-foreground/50">📦</span>
-          </div>
-        )}
+        <ItemImageCarousel
+          images={images}
+          title={title}
+          className="h-full"
+          imageClassName="transition-transform duration-500 group-hover:scale-110"
+        />
         <div className="absolute top-3 right-3">
           <Badge
             variant={status === "available" ? "default" : "secondary"}

@@ -9,6 +9,8 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { ItemImageCarousel } from "@/components/ItemImageCarousel";
 import { ArrowLeft, MapPin, Calendar } from "lucide-react";
 import { toast } from "sonner";
 import { format } from "date-fns";
@@ -35,6 +37,7 @@ interface FoundItem {
   location_found: string;
   date_found: string;
   photo_url: string | null;
+  photo_urls: string[] | null;
 }
 
 export default function Claim() {
@@ -47,6 +50,10 @@ export default function Claim() {
   const [item, setItem] = useState<FoundItem | null>(null);
   const [userId, setUserId] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState(initialMode);
+  const [successMessage, setSuccessMessage] = useState<null | {
+    title: string;
+    description: string;
+  }>(null);
 
   const [claimData, setClaimData] = useState({ name: "", email: "", phone: "", description: "" });
   const [infoData, setInfoData] = useState({ name: "", email: "", question: "" });
@@ -84,8 +91,10 @@ export default function Claim() {
         claimant_phone: claimData.phone || null, description: claimData.description, user_id: userId,
       });
       if (error) throw error;
-      toast.success("Claim submitted successfully!");
-      navigate("/items");
+      setSuccessMessage({
+        title: "Claim submitted",
+        description: "Your claim will be reviewed by an admin and you will be sent an email.",
+      });
     } catch (error) { toast.error("Failed to submit claim"); }
     finally { setLoading(false); }
   };
@@ -128,7 +137,11 @@ export default function Claim() {
         <div className="grid md:grid-cols-2 gap-8 max-w-6xl mx-auto">
           <GlassCard className="p-6 animate-fade-in">
             <h2 className="text-2xl font-bold mb-4 text-foreground">Item Details</h2>
-            {item.photo_url && <div className="mb-6 rounded-lg overflow-hidden"><img src={item.photo_url} alt={item.title} className="w-full h-64 object-cover" /></div>}
+            <ItemImageCarousel
+              images={item.photo_urls?.length ? item.photo_urls : [item.photo_url]}
+              title={item.title}
+              className="mb-6 h-64 rounded-lg"
+            />
             <h3 className="text-xl font-semibold mb-2 text-foreground">{item.title}</h3>
             <p className="text-muted-foreground mb-4">{item.description}</p>
             <div className="space-y-3 text-sm">
@@ -166,6 +179,25 @@ export default function Claim() {
           </GlassCard>
         </div>
       </main>
+
+      <Dialog open={!!successMessage} onOpenChange={(open) => {
+        if (!open) {
+          setSuccessMessage(null);
+          navigate("/items");
+        }
+      }}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>{successMessage?.title}</DialogTitle>
+            <DialogDescription>{successMessage?.description}</DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button onClick={() => navigate("/items")} className="nb-button accent-gold-bg font-semibold">
+              Done
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

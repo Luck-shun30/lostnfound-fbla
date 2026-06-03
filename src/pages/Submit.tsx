@@ -9,10 +9,13 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Upload, ArrowLeft, Sparkles, Loader2 } from "lucide-react";
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Upload, ArrowLeft, Sparkles, Loader2, X } from "lucide-react";
 import { toast } from "sonner";
 import { z } from "zod";
 import { generateItemDetails } from "@/utils/gemini";
+import { ItemImageCarousel } from "@/components/ItemImageCarousel";
+import { queueSubmittedItemNotificationEmails } from "@/lib/email";
 
 const itemSchema = z.object({
   title: z.string().min(3, "Title must be at least 3 characters").max(100),
@@ -37,8 +40,9 @@ export default function Submit() {
   const [loading, setLoading] = useState(false);
   const [loadingAutofill, setLoadingAutofill] = useState(false);
   const [userId, setUserId] = useState<string | null>(null);
-  const [photoFile, setPhotoFile] = useState<File | null>(null);
-  const [photoPreview, setPhotoPreview] = useState<string | null>(null);
+  const [photoFiles, setPhotoFiles] = useState<File[]>([]);
+  const [photoPreviews, setPhotoPreviews] = useState<string[]>([]);
+  const [showSuccessDialog, setShowSuccessDialog] = useState(false);
 
   const [formData, setFormData] = useState({
     title: "",
@@ -59,28 +63,46 @@ export default function Submit() {
     });
   }, [navigate]);
 
-  const handlePhotoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      if (file.size > 5 * 1024 * 1024) {
-        toast.error("Image must be less than 5MB");
-        return;
-      }
-      setPhotoFile(file);
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setPhotoPreview(reader.result as string);
-      };
-      reader.readAsDataURL(file);
+  const handlePhotoChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = Array.from(e.target.files || []);
+    if (!files.length) return;
+
+    const oversizedFile = files.find((file) => file.size > 5 * 1024 * 1024);
+    if (oversizedFile) {
+      toast.error("Each image must be less than 5MB");
+      e.target.value = "";
+      return;
     }
+
+    const previews = await Promise.all(
+      files.map(
+        (file) =>
+          new Promise<string>((resolve, reject) => {
+            const reader = new FileReader();
+            reader.onloadend = () => resolve(reader.result as string);
+            reader.onerror = () => reject(new Error("Failed to read image"));
+            reader.readAsDataURL(file);
+          })
+      )
+    );
+
+    setPhotoFiles(files);
+    setPhotoPreviews(previews);
+  };
+
+  const handleRemovePhotos = () => {
+    setPhotoFiles([]);
+    setPhotoPreviews([]);
+    const input = document.getElementById("photo") as HTMLInputElement | null;
+    if (input) input.value = "";
   };
 
   const handleAutofill = async () => {
-    if (!photoFile) return;
+    if (!photoFiles[0]) return;
 
     setLoadingAutofill(true);
     try {
-      const details = await generateItemDetails(photoFile);
+      const details = await generateItemDetails(photoFiles[0]);
       if (details) {
         setFormData(prev => ({
           ...prev,
@@ -112,40 +134,66 @@ export default function Submit() {
         return;
       }
 
-      let photoUrl = null;
+      let photoUrls: string[] = [];
 
-      if (photoFile) {
-        const fileExt = photoFile.name.split(".").pop();
-        const fileName = `${userId}/${Date.now()}.${fileExt}`;
+      if (photoFiles.length) {
+        photoUrls = await Promise.all(
+          photoFiles.map(async (file, index) => {
+            const fileExt = file.name.split(".").pop();
+            const fileName = `${userId}/${Date.now()}-${index}.${fileExt}`;
 
-        const { error: uploadError } = await supabase.storage
-          .from("item-photos")
-          .upload(fileName, photoFile);
+            const { error: uploadError } = await supabase.storage
+              .from("item-photos")
+              .upload(fileName, file);
 
-        if (uploadError) throw uploadError;
+            if (uploadError) throw uploadError;
 
-        const {
-          data: { publicUrl },
-        } = supabase.storage.from("item-photos").getPublicUrl(fileName);
+            const {
+              data: { publicUrl },
+            } = supabase.storage.from("item-photos").getPublicUrl(fileName);
 
-        photoUrl = publicUrl;
+            return publicUrl;
+          })
+        );
       }
 
-      const { error } = await supabase.from("found_items").insert({
+      const itemId = crypto.randomUUID();
+      const itemPayload = {
+        id: itemId,
         title: formData.title,
         description: formData.description,
         category: formData.category,
         location_found: formData.location,
         date_found: formData.dateFound,
-        photo_url: photoUrl,
+        photo_url: photoUrls[0] || null,
         submitted_by: userId,
-      });
+      };
 
-      if (error) throw error;
+      const { error } = await supabase
+        .from("found_items")
+        .insert({
+          ...itemPayload,
+          photo_urls: photoUrls,
+        });
 
-      toast.success("Item submitted successfully! It will appear once approved.");
-      navigate("/items");
+      if (error && /photo_urls|schema cache|column/i.test(error.message)) {
+        const { error: fallbackError } = await supabase
+          .from("found_items")
+          .insert(itemPayload);
+
+        if (fallbackError) throw fallbackError;
+      } else if (error) {
+        throw error;
+      }
+
+      const notificationResult = await queueSubmittedItemNotificationEmails(itemId);
+      if (!notificationResult.success) {
+        console.warn("New item notification emails were not queued:", notificationResult.error);
+      }
+
+      setShowSuccessDialog(true);
     } catch (error) {
+      console.error("Failed to submit item:", error);
       toast.error("Failed to submit item");
     } finally {
       setLoading(false);
@@ -185,7 +233,7 @@ export default function Submit() {
                     variant="outline"
                     size="sm"
                     onClick={handleAutofill}
-                    disabled={!photoFile || loadingAutofill}
+                    disabled={!photoFiles.length || loadingAutofill}
                     className="h-8 border-violet-200 hover:bg-violet-50 hover:text-violet-700 hover:border-violet-300 transition-colors"
                   >
                     {loadingAutofill ? (
@@ -198,17 +246,27 @@ export default function Submit() {
                 </div>
 
                 <div className="flex flex-col gap-4">
-                  {photoPreview ? (
+                  {photoPreviews.length ? (
                     <div className="relative rounded-lg overflow-hidden border border-border/50 group">
-                      <img src={photoPreview} alt="Preview" className="w-full h-64 object-cover" />
+                      <ItemImageCarousel images={photoPreviews} title="Selected item" className="h-64" />
                       <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-                        <Button
-                          type="button"
-                          variant="secondary"
-                          onClick={() => document.getElementById("photo")?.click()}
-                        >
-                          Change Photo
-                        </Button>
+                        <div className="flex gap-2">
+                          <Button
+                            type="button"
+                            variant="secondary"
+                            onClick={() => document.getElementById("photo")?.click()}
+                          >
+                            Change Photos
+                          </Button>
+                          <Button
+                            type="button"
+                            variant="secondary"
+                            aria-label="Remove selected photos"
+                            onClick={handleRemovePhotos}
+                          >
+                            <X className="w-4 h-4" />
+                          </Button>
+                        </div>
                       </div>
                     </div>
                   ) : (
@@ -220,19 +278,20 @@ export default function Submit() {
                         <Upload className="w-6 h-6 text-gray-500" />
                       </div>
                       <p className="font-medium text-gray-700">Click to upload photo</p>
-                      <p className="text-sm text-gray-400 mt-1">PNG, JPG up to 5MB</p>
+                      <p className="text-sm text-gray-400 mt-1">PNG, JPG up to 5MB each</p>
                     </div>
                   )}
                   <input
                     id="photo"
                     type="file"
                     accept="image/*"
+                    multiple
                     onChange={handlePhotoChange}
                     className="hidden"
                   />
-                  {!photoFile && (
+                  {!photoFiles.length && (
                     <p className="text-xs text-muted-foreground">
-                      Upload a photo to enable AI autofill for item details.
+                      Upload photos to enable AI autofill. Only the first image is sent to AI.
                     </p>
                   )}
                 </div>
@@ -335,6 +394,25 @@ export default function Submit() {
           </GlassCard>
         </div>
       </main>
+
+      <Dialog open={showSuccessDialog} onOpenChange={(open) => {
+        setShowSuccessDialog(open);
+        if (!open) navigate("/items");
+      }}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Report submitted</DialogTitle>
+            <DialogDescription>
+              Your item will show up once an admin approves it.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button onClick={() => navigate("/items")} className="nb-button accent-gold-bg font-semibold">
+              Done
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

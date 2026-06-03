@@ -18,6 +18,7 @@ interface FoundItem {
   location_found: string;
   date_found: string;
   photo_url: string | null;
+  photo_urls: string[] | null;
   status: string;
 }
 
@@ -156,6 +157,7 @@ export default function Items() {
                 location={item.location_found}
                 dateFound={item.date_found}
                 photoUrl={item.photo_url || undefined}
+                photoUrls={item.photo_urls || undefined}
                 status={item.status}
                 onClaim={() => navigate(`/claim/${item.id}`)}
                 onRequestInfo={() => navigate(`/claim/${item.id}?mode=info`)}

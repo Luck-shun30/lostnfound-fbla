@@ -68,6 +68,7 @@ export type Database = {
           id: string
           location_found: string
           photo_url: string | null
+          photo_urls: string[] | null
           status: string
           submitted_by: string
           title: string
@@ -82,6 +83,7 @@ export type Database = {
           id?: string
           location_found: string
           photo_url?: string | null
+          photo_urls?: string[] | null
           status?: string
           submitted_by: string
           title: string
@@ -96,10 +98,50 @@ export type Database = {
           id?: string
           location_found?: string
           photo_url?: string | null
+          photo_urls?: string[] | null
           status?: string
           submitted_by?: string
           title?: string
           updated_at?: string | null
+        }
+        Relationships: []
+      }
+      email_queue: {
+        Row: {
+          created_at: string
+          data: Json | null
+          error_message: string | null
+          html_body: string
+          id: string
+          recipient: string
+          sent_at: string | null
+          status: string
+          subject: string
+          type: string
+        }
+        Insert: {
+          created_at?: string
+          data?: Json | null
+          error_message?: string | null
+          html_body: string
+          id?: string
+          recipient: string
+          sent_at?: string | null
+          status?: string
+          subject: string
+          type?: string
+        }
+        Update: {
+          created_at?: string
+          data?: Json | null
+          error_message?: string | null
+          html_body?: string
+          id?: string
+          recipient?: string
+          sent_at?: string | null
+          status?: string
+          subject?: string
+          type?: string
         }
         Relationships: []
       }
@@ -203,6 +245,13 @@ export type Database = {
           _user_id: string
         }
         Returns: boolean
+      }
+      queue_new_item_report_emails: {
+        Args: {
+          _app_origin: string
+          _item_id: string
+        }
+        Returns: number
       }
     }
     Enums: {
